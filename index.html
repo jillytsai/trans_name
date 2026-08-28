@@ -127,7 +127,7 @@
       <div class="text-center space-y-1.5">
         <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-sm">外文姓名、中譯名與四角號碼全庫查詢</h2>
         <p class="text-sm sm:text-base text-blue-100 font-medium max-w-2xl mx-auto">
-          已整合 Google 試算表全部 26 個分頁 (A ~ Z)，支援全資料庫 3.8 萬筆跨分頁即時檢索！
+          已整合 Google 試算表全部 26 個分頁 (A ~ Z)，支援全資料庫 4 萬筆 (40,061 筆) 跨分頁即時檢索！
         </p>
       </div>
 
@@ -442,34 +442,34 @@
 
   <!-- Application Logic Script -->
   <script>
-    // Complete 26 Alphabet Sub-tabs specification from Google Sheet
+    // Complete 26 Alphabet Sub-tabs specification from Google Sheet (Verified)
     const ALL_SHEET_TABS = [
-      { name: 'A', gid: '1783964143', rowsCount: 2322 },
-      { name: 'B', gid: '1621655260', rowsCount: 4263 },
-      { name: 'C', gid: '1922212743', rowsCount: 2778 },
-      { name: 'D', gid: '1676990373', rowsCount: 2246 },
-      { name: 'E', gid: '211041675', rowsCount: 993 },
-      { name: 'F', gid: '383050874', rowsCount: 1540 },
-      { name: 'G', gid: '192958997', rowsCount: 2353 },
-      { name: 'H', gid: '203954474', rowsCount: 2400 },
-      { name: 'I', gid: '699458560', rowsCount: 413 },
-      { name: 'J', gid: '1898972478', rowsCount: 696 },
-      { name: 'K', gid: '177580375', rowsCount: 2249 },
-      { name: 'L', gid: '1522003498', rowsCount: 2233 },
-      { name: 'M', gid: '1019772935', rowsCount: 3421 },
-      { name: 'N', gid: '182134383', rowsCount: 864 },
-      { name: 'O', gid: '880901491', rowsCount: 736 },
-      { name: 'P', gid: '2112331440', rowsCount: 2142 },
-      { name: 'Q', gid: '385410025', rowsCount: 124 },
-      { name: 'R', gid: '1609586300', rowsCount: 1889 },
-      { name: 'S', gid: '546862446', rowsCount: 886 },
-      { name: 'T', gid: '1190882297', rowsCount: 255 },
-      { name: 'U', gid: '1329771086', rowsCount: 242 },
-      { name: 'V', gid: '561098425', rowsCount: 926 },
-      { name: 'W', gid: '1452128132', rowsCount: 1288 },
-      { name: 'X', gid: '699512428', rowsCount: 18 },
-      { name: 'Y', gid: '515411459', rowsCount: 270 },
-      { name: 'Z', gid: '1954979504', rowsCount: 534 }
+      { name: 'A', gid: '794339418', rowsCount: 2332 },
+      { name: 'B', gid: '1312759960', rowsCount: 4272 },
+      { name: 'C', gid: '2007976606', rowsCount: 1321 },
+      { name: 'D', gid: '802300521', rowsCount: 2247 },
+      { name: 'E', gid: '1097529975', rowsCount: 1028 },
+      { name: 'F', gid: '1755645872', rowsCount: 1540 },
+      { name: 'G', gid: '1064898405', rowsCount: 2410 },
+      { name: 'H', gid: '195621935', rowsCount: 2471 },
+      { name: 'I', gid: '2020229711', rowsCount: 413 },
+      { name: 'J', gid: '2025488292', rowsCount: 696 },
+      { name: 'K', gid: '1998031436', rowsCount: 2292 },
+      { name: 'L', gid: '1328148361', rowsCount: 2233 },
+      { name: 'M', gid: '979868521', rowsCount: 3426 },
+      { name: 'N', gid: '858278471', rowsCount: 864 },
+      { name: 'O', gid: '1710067461', rowsCount: 736 },
+      { name: 'P', gid: '692750109', rowsCount: 2142 },
+      { name: 'Q', gid: '1042186497', rowsCount: 124 },
+      { name: 'R', gid: '222316315', rowsCount: 1889 },
+      { name: 'S', gid: '1615198515', rowsCount: 4092 },
+      { name: 'T', gid: '1996809292', rowsCount: 255 },
+      { name: 'U', gid: '1340713226', rowsCount: 242 },
+      { name: 'V', gid: '373494008', rowsCount: 926 },
+      { name: 'W', gid: '492300218', rowsCount: 1288 },
+      { name: 'X', gid: '670669454', rowsCount: 18 },
+      { name: 'Y', gid: '450119034', rowsCount: 270 },
+      { name: 'Z', gid: '1017947214', rowsCount: 534 }
     ];
 
     const SPREADSHEET_ID = '1BQVNbpUtBVs6JcRUWFXpTVXwrpscLF4ezjIvf_geeOs';
@@ -594,7 +594,7 @@
 
       // All Tabs button
       const allBtn = document.createElement('button');
-      allBtn.textContent = '📚 全部分頁 (3.8 萬筆)';
+      allBtn.textContent = '📚 全部分頁 (4 萬筆)';
       allBtn.dataset.tab = '_all_';
       allBtn.className = `px-3 py-1.5 text-xs sm:text-sm font-black rounded-xl transition-all ${
         state.selectedTab === '_all_'
@@ -629,7 +629,7 @@
       state.currentPage = 1;
 
       if (tabName === '_all_') {
-        elements.activeTabStatus.innerText = '正在檢視: 全部分頁 (全庫 38,081 筆)';
+        elements.activeTabStatus.innerText = '正在檢視: 全部分頁 (全庫 40,061 筆)';
         elements.currentTabStatLabel.innerText = '全庫總筆數';
         elements.statCurrentTabRows.innerText = state.allAggregatedRows.length.toLocaleString();
       } else {
