@@ -307,6 +307,38 @@
     <!-- Data Display Area -->
     <div class="bg-white rounded-2xl shadow-card border border-slate-200 overflow-hidden flex flex-col">
       
+      <!-- Top Pagination Header Bar -->
+      <div id="topPaginationBar" class="p-3.5 sm:p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-700 font-bold">
+        <div class="flex items-center gap-3">
+          <span class="text-slate-500">每頁顯示:</span>
+          <select id="topPageSizeSelect" class="bg-white border border-slate-200 rounded-xl py-1.5 px-3 text-sm font-black text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer shadow-sm">
+            <option value="20">20 筆</option>
+            <option value="50">50 筆</option>
+            <option value="100">100 筆</option>
+            <option value="200">200 筆</option>
+            <option value="100000">全部顯示</option>
+          </select>
+          <span class="text-slate-500 font-mono text-xs sm:text-sm font-bold" id="topPageRangeText">顯示第 0 - 0 筆 / 共 0 筆</span>
+        </div>
+
+        <!-- Top Page Navigation Buttons -->
+        <div class="flex items-center gap-2" id="topPaginationControls">
+          <button id="topFirstPageBtn" class="p-2 px-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="第一頁">
+            <i class="fa-solid fa-angles-left text-xs"></i>
+          </button>
+          <button id="topPrevPageBtn" class="p-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="上一頁">
+            <i class="fa-solid fa-angle-left text-sm"></i>
+          </button>
+          <span class="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 font-black text-slate-900 shadow-sm text-xs sm:text-sm" id="topCurrentPageIndicator">第 1 / 1 頁</span>
+          <button id="topNextPageBtn" class="p-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="下一頁">
+            <i class="fa-solid fa-angle-right text-sm"></i>
+          </button>
+          <button id="topLastPageBtn" class="p-2 px-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="最後一頁">
+            <i class="fa-solid fa-angles-right text-xs"></i>
+          </button>
+        </div>
+      </div>
+
       <!-- Table View Container -->
       <div id="tableViewWrapper" class="relative overflow-x-auto max-h-[720px] custom-scrollbar">
         <table id="dataTable" class="w-full text-left border-collapse">
@@ -537,6 +569,13 @@
       prevPageBtn: document.getElementById('prevPageBtn'),
       nextPageBtn: document.getElementById('nextPageBtn'),
       lastPageBtn: document.getElementById('lastPageBtn'),
+      topPageSizeSelect: document.getElementById('topPageSizeSelect'),
+      topPageRangeText: document.getElementById('topPageRangeText'),
+      topCurrentPageIndicator: document.getElementById('topCurrentPageIndicator'),
+      topFirstPageBtn: document.getElementById('topFirstPageBtn'),
+      topPrevPageBtn: document.getElementById('topPrevPageBtn'),
+      topNextPageBtn: document.getElementById('topNextPageBtn'),
+      topLastPageBtn: document.getElementById('topLastPageBtn'),
       refreshBtn: document.getElementById('refreshBtn'),
       refreshIcon: document.getElementById('refreshIcon'),
       colToggleBtn: document.getElementById('colToggleBtn'),
@@ -1096,13 +1135,26 @@
       const startIdx = total === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1;
       const endIdx = Math.min(state.currentPage * state.pageSize, total);
 
-      elements.pageRangeText.innerText = `顯示第 ${startIdx} - ${endIdx} 筆 / 共 ${total.toLocaleString()} 筆`;
-      elements.currentPageIndicator.innerText = `第 ${state.currentPage} / ${totalPages} 頁`;
+      const rangeText = `顯示第 ${startIdx} - ${endIdx} 筆 / 共 ${total.toLocaleString()} 筆`;
+      const pageIndicatorText = `第 ${state.currentPage} / ${totalPages} 頁`;
 
+      // Update bottom controls
+      elements.pageRangeText.innerText = rangeText;
+      elements.currentPageIndicator.innerText = pageIndicatorText;
       elements.firstPageBtn.disabled = state.currentPage <= 1;
       elements.prevPageBtn.disabled = state.currentPage <= 1;
       elements.nextPageBtn.disabled = state.currentPage >= totalPages;
       elements.lastPageBtn.disabled = state.currentPage >= totalPages;
+      elements.pageSizeSelect.value = String(state.pageSize);
+
+      // Update top controls
+      if (elements.topPageRangeText) elements.topPageRangeText.innerText = rangeText;
+      if (elements.topCurrentPageIndicator) elements.topCurrentPageIndicator.innerText = pageIndicatorText;
+      if (elements.topFirstPageBtn) elements.topFirstPageBtn.disabled = state.currentPage <= 1;
+      if (elements.topPrevPageBtn) elements.topPrevPageBtn.disabled = state.currentPage <= 1;
+      if (elements.topNextPageBtn) elements.topNextPageBtn.disabled = state.currentPage >= totalPages;
+      if (elements.topLastPageBtn) elements.topLastPageBtn.disabled = state.currentPage >= totalPages;
+      if (elements.topPageSizeSelect) elements.topPageSizeSelect.value = String(state.pageSize);
     }
 
     // Populate Filter Column Select
@@ -1225,7 +1277,7 @@
         renderHeader();
       });
 
-      // Page size
+      // Page size (Bottom & Top synced)
       elements.pageSizeSelect.addEventListener('change', (e) => {
         state.pageSize = parseInt(e.target.value, 10);
         state.currentPage = 1;
@@ -1233,21 +1285,42 @@
         renderPagination();
       });
 
-      // Pagination
-      elements.firstPageBtn.addEventListener('click', () => {
+      if (elements.topPageSizeSelect) {
+        elements.topPageSizeSelect.addEventListener('change', (e) => {
+          state.pageSize = parseInt(e.target.value, 10);
+          state.currentPage = 1;
+          renderDisplayData();
+          renderPagination();
+        });
+      }
+
+      // Pagination helper
+      const goToFirstPage = () => {
         if (state.currentPage > 1) { state.currentPage = 1; renderDisplayData(); renderPagination(); }
-      });
-      elements.prevPageBtn.addEventListener('click', () => {
+      };
+      const goToPrevPage = () => {
         if (state.currentPage > 1) { state.currentPage--; renderDisplayData(); renderPagination(); }
-      });
-      elements.nextPageBtn.addEventListener('click', () => {
+      };
+      const goToNextPage = () => {
         const totalPages = Math.ceil(state.filteredRows.length / state.pageSize) || 1;
         if (state.currentPage < totalPages) { state.currentPage++; renderDisplayData(); renderPagination(); }
-      });
-      elements.lastPageBtn.addEventListener('click', () => {
+      };
+      const goToLastPage = () => {
         const totalPages = Math.ceil(state.filteredRows.length / state.pageSize) || 1;
         if (state.currentPage < totalPages) { state.currentPage = totalPages; renderDisplayData(); renderPagination(); }
-      });
+      };
+
+      // Bottom pagination buttons
+      elements.firstPageBtn.addEventListener('click', goToFirstPage);
+      elements.prevPageBtn.addEventListener('click', goToPrevPage);
+      elements.nextPageBtn.addEventListener('click', goToNextPage);
+      elements.lastPageBtn.addEventListener('click', goToLastPage);
+
+      // Top pagination buttons
+      if (elements.topFirstPageBtn) elements.topFirstPageBtn.addEventListener('click', goToFirstPage);
+      if (elements.topPrevPageBtn) elements.topPrevPageBtn.addEventListener('click', goToPrevPage);
+      if (elements.topNextPageBtn) elements.topNextPageBtn.addEventListener('click', goToNextPage);
+      if (elements.topLastPageBtn) elements.topLastPageBtn.addEventListener('click', goToLastPage);
 
       // Refresh
       elements.refreshBtn.addEventListener('click', fetchAllTabsData);
