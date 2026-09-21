@@ -108,7 +108,7 @@
         </button>
 
         <!-- Open Sheet Link -->
-        <a id="sheetLink" href="https://docs.google.com/spreadsheets/d/1BQVNbpUtBVs6JcRUWFXpTVXwrpscLF4ezjIvf_geeOs/edit" target="_blank" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3.5 rounded-xl transition shadow-sm shadow-emerald-600/30" title="在 Google 試算表開啟">
+        <a id="sheetLink" href="https://docs.google.com/spreadsheets/d/1DprJwhRdYzm_5icKpEAEZ1pOO-v22eCNrJi1EWfj9HA/edit" target="_blank" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3.5 rounded-xl transition shadow-sm shadow-emerald-600/30" title="在 Google 試算表開啟">
           <i class="fa-solid fa-arrow-up-right-from-square"></i>
           <span class="hidden sm:inline">開啟原表</span>
         </a>
@@ -472,7 +472,7 @@
       { name: 'Z', gid: '1017947214', rowsCount: 534 }
     ];
 
-    const SPREADSHEET_ID = '1BQVNbpUtBVs6JcRUWFXpTVXwrpscLF4ezjIvf_geeOs';
+    const SPREADSHEET_ID = '1DprJwhRdYzm_5icKpEAEZ1pOO-v22eCNrJi1EWfj9HA';
 
     // State
     const state = {
@@ -710,6 +710,16 @@
             rowObj[h] = '';
           }
         });
+
+        // 四角號碼校正：「桑」字結構上方為三個叉叉（又又又），前兩碼標準必為 77（原表中常誤植或 OCR 為 17）
+        const chiVal = rowObj['中文名稱'] || rowObj[headers[1]] || '';
+        const codeKey = Object.keys(rowObj).find(k => k.includes('四角') || k.includes('號碼')) || headers[2];
+        if (chiVal && chiVal.startsWith('桑') && codeKey && rowObj[codeKey]) {
+          if (rowObj[codeKey].startsWith('17')) {
+            rowObj[codeKey] = '77' + rowObj[codeKey].slice(2);
+          }
+        }
+
         return rowObj;
       });
 

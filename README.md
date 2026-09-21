@@ -2,7 +2,7 @@
 
 這是一個基於 Google Sheets 資料庫的外文姓名、中文譯名與四角號碼查詢系統，支援全庫 26 個字母分頁（A ~ Z）整合搜尋與單一分頁快速切換。
 
-- **資料庫來源**：[Google 試算表連結](https://docs.google.com/spreadsheets/d/1BQVNbpUtBVs6JcRUWFXpTVXwrpscLF4ezjIvf_geeOs/edit)
+- **資料庫來源**：[Google 試算表連結](https://docs.google.com/spreadsheets/d/1DprJwhRdYzm_5icKpEAEZ1pOO-v22eCNrJi1EWfj9HA/edit)
 - **涵蓋範圍**：全 26 個字母子工作表（A ~ Z）
 - **總收錄筆數**：共 40,061 筆譯名資料
 
