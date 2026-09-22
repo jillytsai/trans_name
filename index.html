@@ -127,7 +127,7 @@
       <div class="text-center space-y-1.5">
         <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-sm">外文姓名、中譯名與四角號碼全庫查詢</h2>
         <p class="text-sm sm:text-base text-blue-100 font-medium max-w-2xl mx-auto">
-          已整合 Google 試算表全部 26 個分頁 (A ~ Z)，支援全資料庫 4 萬筆 (40,061 筆) 跨分頁即時檢索！
+          已整合 Google 試算表全部 26 個分頁 (A ~ Z)，支援全資料庫 4 萬筆 (42,972 筆) 跨分頁即時檢索！
         </p>
       </div>
 
@@ -368,7 +368,7 @@
           <i class="fa-solid fa-spinner"></i>
         </div>
         <p class="text-base font-black text-slate-800 mt-2" id="loadingText">正在載入 26 個分頁資料...</p>
-        <p class="text-sm text-slate-400" id="loadingSubtext">已支援全庫 38,081 筆整合查詢</p>
+        <p class="text-sm text-slate-400" id="loadingSubtext">已支援全庫 42,972 筆整合查詢</p>
       </div>
 
       <!-- Empty State -->
@@ -474,34 +474,34 @@
 
   <!-- Application Logic Script -->
   <script>
-    // Complete 26 Alphabet Sub-tabs specification from Google Sheet (Verified for Cloned Sheet)
+    // Complete 26 Alphabet Sub-tabs specification from Google Sheet (2026-09-22 匯入輔大字典修正版後的新 GID)
     const ALL_SHEET_TABS = [
-      { name: 'A', gid: '1218758949', rowsCount: 2332 },
-      { name: 'B', gid: '1972503810', rowsCount: 4272 },
-      { name: 'C', gid: '2012113025', rowsCount: 1321 },
-      { name: 'D', gid: '1724523776', rowsCount: 2247 },
-      { name: 'E', gid: '788033022', rowsCount: 1028 },
-      { name: 'F', gid: '1600415547', rowsCount: 1540 },
-      { name: 'G', gid: '862254614', rowsCount: 2410 },
-      { name: 'H', gid: '1097899205', rowsCount: 2471 },
-      { name: 'I', gid: '1091090828', rowsCount: 413 },
-      { name: 'J', gid: '1899163508', rowsCount: 696 },
-      { name: 'K', gid: '1059918597', rowsCount: 2292 },
-      { name: 'L', gid: '1751943907', rowsCount: 2233 },
-      { name: 'M', gid: '425283326', rowsCount: 3426 },
-      { name: 'N', gid: '1907320444', rowsCount: 864 },
-      { name: 'O', gid: '463957896', rowsCount: 736 },
-      { name: 'P', gid: '1896294959', rowsCount: 2142 },
-      { name: 'Q', gid: '666753901', rowsCount: 124 },
-      { name: 'R', gid: '1648537175', rowsCount: 1889 },
-      { name: 'S', gid: '1670759665', rowsCount: 4092 },
-      { name: 'T', gid: '1427337914', rowsCount: 255 },
-      { name: 'U', gid: '1833395285', rowsCount: 242 },
-      { name: 'V', gid: '654723940', rowsCount: 926 },
-      { name: 'W', gid: '2066089904', rowsCount: 1288 },
-      { name: 'X', gid: '1275336458', rowsCount: 18 },
-      { name: 'Y', gid: '1520584080', rowsCount: 270 },
-      { name: 'Z', gid: '835318692', rowsCount: 534 }
+      { name: 'A', gid: '424640430', rowsCount: 2332 },
+      { name: 'B', gid: '1136657273', rowsCount: 4272 },
+      { name: 'C', gid: '123272442', rowsCount: 2824 },
+      { name: 'D', gid: '2067195655', rowsCount: 2247 },
+      { name: 'E', gid: '683924894', rowsCount: 1028 },
+      { name: 'F', gid: '794016945', rowsCount: 1540 },
+      { name: 'G', gid: '77535945', rowsCount: 2410 },
+      { name: 'H', gid: '644627973', rowsCount: 2471 },
+      { name: 'I', gid: '1686769862', rowsCount: 413 },
+      { name: 'J', gid: '1620780924', rowsCount: 696 },
+      { name: 'K', gid: '199925572', rowsCount: 2292 },
+      { name: 'L', gid: '558676', rowsCount: 2233 },
+      { name: 'M', gid: '2090279865', rowsCount: 3426 },
+      { name: 'N', gid: '753101683', rowsCount: 864 },
+      { name: 'O', gid: '1401084687', rowsCount: 736 },
+      { name: 'P', gid: '429884165', rowsCount: 2142 },
+      { name: 'Q', gid: '574342897', rowsCount: 124 },
+      { name: 'R', gid: '1760459755', rowsCount: 1889 },
+      { name: 'S', gid: '1441739257', rowsCount: 4092 },
+      { name: 'T', gid: '1308550539', rowsCount: 1663 },
+      { name: 'U', gid: '415092163', rowsCount: 242 },
+      { name: 'V', gid: '931611921', rowsCount: 926 },
+      { name: 'W', gid: '5374172', rowsCount: 1288 },
+      { name: 'X', gid: '674271756', rowsCount: 18 },
+      { name: 'Y', gid: '1344706558', rowsCount: 270 },
+      { name: 'Z', gid: '903847743', rowsCount: 534 }
     ];
 
     const SPREADSHEET_ID = '1DprJwhRdYzm_5icKpEAEZ1pOO-v22eCNrJi1EWfj9HA';
@@ -668,7 +668,7 @@
       state.currentPage = 1;
 
       if (tabName === '_all_') {
-        elements.activeTabStatus.innerText = '正在檢視: 全部分頁 (全庫 40,061 筆)';
+        elements.activeTabStatus.innerText = '正在檢視: 全部分頁 (全庫 42,972 筆)';
         elements.currentTabStatLabel.innerText = '全庫總筆數';
         elements.statCurrentTabRows.innerText = state.allAggregatedRows.length.toLocaleString();
       } else {
@@ -715,7 +715,8 @@
           resolve({ name: tab.name, gid: tab.gid, rows: [], headers: [], error: 'Script load error' });
         };
 
-        script.src = `https://docs.google.com/spreadsheets/d/${state.sheetId}/gviz/tq?tqx=responseHandler:${callbackName}&gid=${tab.gid}`;
+        // headers=1：明確指定只有第 1 列是標題。未指定時 GViz 會自行猜測，C、T 分頁曾被誤判而把上千列併入標題
+        script.src = `https://docs.google.com/spreadsheets/d/${state.sheetId}/gviz/tq?tqx=responseHandler:${callbackName}&headers=1&gid=${tab.gid}`;
         document.body.appendChild(script);
       });
     }
@@ -726,13 +727,20 @@
       const rows = table.rows || [];
 
       let headers = ['英文名稱', '中文名稱', '四角號碼'];
+      let colIndexes = headers.map((_, i) => i);
       let dataRows = rows;
 
-      if (rows.length > 0) {
+      // headers=1 時標題在 cols 的 label；只取有標題的欄位（C 分頁 D 欄有零星無標題資料，忽略）
+      const labels = cols.map(c => (c && c.label ? String(c.label).trim() : ''));
+      if (labels.some(h => h.includes('名稱') || h.includes('號碼') || h.includes('Name'))) {
+        colIndexes = labels.map((h, i) => (h ? i : -1)).filter(i => i >= 0);
+        headers = colIndexes.map(i => labels[i]);
+      } else if (rows.length > 0) {
         const firstRowCells = rows[0].c || [];
         const possibleHeaders = firstRowCells.map(c => (c && c.v !== null && c.v !== undefined ? String(c.v).trim() : ''));
         if (possibleHeaders.some(h => h.includes('名稱') || h.includes('號碼') || h.includes('Name'))) {
           headers = possibleHeaders.map((h, i) => h || `欄位 ${i + 1}`);
+          colIndexes = headers.map((_, i) => i);
           dataRows = rows.slice(1);
         }
       }
@@ -740,7 +748,7 @@
       const parsedRows = dataRows.map((r, rowIdx) => {
         const rowObj = { _tab: tabName };
         headers.forEach((h, idx) => {
-          const cell = r.c ? r.c[idx] : null;
+          const cell = r.c ? r.c[colIndexes[idx]] : null;
           if (cell) {
             rowObj[h] = cell.f !== undefined && cell.f !== null 
               ? String(cell.f).trim() 

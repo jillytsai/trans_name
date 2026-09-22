@@ -4,7 +4,7 @@
 
 - **資料庫來源**：[Google 試算表連結](https://docs.google.com/spreadsheets/d/1DprJwhRdYzm_5icKpEAEZ1pOO-v22eCNrJi1EWfj9HA/edit)
 - **涵蓋範圍**：全 26 個字母子工作表（A ~ Z）
-- **總收錄筆數**：共 40,061 筆譯名資料
+- **總收錄筆數**：共 42,972 筆譯名資料
 
 ---
 
