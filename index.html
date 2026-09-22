@@ -1,478 +1,500 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" class="fs-large">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>外文姓名與中文譯名快速查詢系統 (全 26 分頁整合版)</title>
-  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <title>外文姓名譯名查詢</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- PapaParse for CSV -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'Noto Sans TC', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          boxShadow: {
-            'glow': '0 0 25px -3px rgba(37, 99, 235, 0.3)',
-            'card': '0 3px 12px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
-            'card-hover': '0 12px 28px -4px rgba(0, 0, 0, 0.12), 0 6px 10px -2px rgba(0, 0, 0, 0.05)',
-          }
-        }
+  <style>
+    :root {
+      --paper: #f5f3ee;
+      --surface: #fffefb;
+      --surface-2: #faf8f3;
+      --ink: #1c2530;
+      --ink-2: #4a5563;
+      --muted: #8a8f98;
+      --line: #e7e2d7;
+      --line-2: #d8d2c4;
+      --accent: #1f4e79;
+      --accent-hover: #173d60;
+      --accent-soft: #e9eff6;
+      --on-accent: #ffffff;
+      --gold: #a6793a;
+      --gold-soft: #f5ecdd;
+      --code-bg: #edf1f6;
+      --code-ink: #23405f;
+      --mark: #fbe7a6;
+      --mark-ink: #4a3a0a;
+      --ok: #3f7d58;
+      --warn: #b7791f;
+      --danger: #b0413e;
+      --shadow: 0 1px 2px rgba(28, 37, 48, .04), 0 4px 16px -6px rgba(28, 37, 48, .08);
+      --shadow-lg: 0 18px 48px -12px rgba(28, 37, 48, .28);
+      --radius: 14px;
+      --serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+      --sans: "Inter", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+      --mono: "JetBrains Mono", Consolas, monospace;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --paper: #13161b; --surface: #1a1e25; --surface-2: #1f242c; --ink: #e9e6df; --ink-2: #b9bdc5; --muted: #7f858f;
+        --line: #2a3039; --line-2: #363d48; --accent: #8fb4dc; --accent-hover: #a9c6e6; --accent-soft: #1e2d40; --on-accent: #13161b;
+        --gold: #d4a861; --gold-soft: #2e2618; --code-bg: #1f2a39; --code-ink: #bcd3ee; --mark: #5c4a16; --mark-ink: #fbeecb;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px -8px rgba(0, 0, 0, .5); --shadow-lg: 0 18px 48px -12px rgba(0, 0, 0, .7);
+        color-scheme: dark;
       }
     }
-  </script>
-  <style>
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+    :root[data-theme="dark"] {
+      --paper: #13161b; --surface: #1a1e25; --surface-2: #1f242c; --ink: #e9e6df; --ink-2: #b9bdc5; --muted: #7f858f;
+      --line: #2a3039; --line-2: #363d48; --accent: #8fb4dc; --accent-hover: #a9c6e6; --accent-soft: #1e2d40; --on-accent: #13161b;
+      --gold: #d4a861; --gold-soft: #2e2618; --code-bg: #1f2a39; --code-ink: #bcd3ee; --mark: #5c4a16; --mark-ink: #fbeecb;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px -8px rgba(0, 0, 0, .5); --shadow-lg: 0 18px 48px -12px rgba(0, 0, 0, .7);
+      color-scheme: dark;
     }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f5f9;
+
+    /* 字體大小（由 JS 切換 html 上的 class） */
+    html.fs-normal { font-size: 15px; }
+    html.fs-large { font-size: 16.5px; }
+    html.fs-xlarge { font-size: 18px; }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+      background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 1rem; line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 8px;
+    ::selection { background: var(--accent); color: var(--on-accent); }
+    button, select, input { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+    .hidden { display: none !important; }
+    .container { width: 100%; max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: var(--mono); }
+
+    /* ---------- Top bar ---------- */
+    .topbar { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); }
+    .topbar .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .seal { width: 38px; height: 38px; border-radius: 9px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-family: var(--serif); font-weight: 900; font-size: 1.25rem; flex-shrink: 0; }
+    .brand-title { font-family: var(--serif); font-weight: 700; font-size: 1.1rem; letter-spacing: .02em; white-space: nowrap; }
+    .brand-sub { font-size: .75rem; color: var(--muted); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; }
+    .status-dot[data-state="connected"] { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 18%, transparent); }
+    .status-dot[data-state="loading"] { background: var(--warn); animation: pulse 1.2s ease-in-out infinite; }
+    .status-dot[data-state="error"] { background: var(--danger); }
+    @keyframes pulse { 50% { opacity: .35; } }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+    .seg { display: inline-flex; padding: 3px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; gap: 2px; }
+    .seg button { border: 0; background: transparent; padding: 5px 11px; border-radius: 7px; font-size: .8rem; color: var(--ink-2); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: background .15s, color .15s; }
+    .seg button:hover { color: var(--ink); }
+    .seg button.is-active { background: var(--surface); color: var(--accent); font-weight: 700; box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+
+    .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); font-size: .85rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background .15s, border-color .15s, color .15s; }
+    .btn:hover { background: var(--surface-2); border-color: var(--muted); }
+    .btn i { font-size: .85em; color: var(--ink-2); }
+    .btn .caret { font-size: .6em; opacity: .7; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .btn.primary i { color: inherit; opacity: .85; }
+    .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn.icon { width: 36px; padding: 0; justify-content: center; }
+    .btn.ghost-danger { border-color: transparent; background: transparent; color: var(--danger); }
+    .btn.ghost-danger i { color: inherit; }
+    .btn.ghost-danger:hover { background: color-mix(in srgb, var(--danger) 8%, transparent); }
+
+    .progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: transparent; overflow: hidden; }
+    .progress > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--accent)); transition: width .3s ease; }
+
+    /* ---------- Hero ---------- */
+    .hero { padding: 48px 0 28px; }
+    .hero h1 { margin: 0; text-align: center; font-family: var(--serif); font-weight: 900; font-size: clamp(1.7rem, 3.4vw, 2.35rem); letter-spacing: .04em; }
+    .hero .lead { margin: 10px auto 0; text-align: center; color: var(--ink-2); font-size: .95rem; }
+    .hero .lead b { color: var(--ink); font-weight: 600; font-family: var(--mono); }
+    .hero .lead .hint { font-size: .8rem; color: var(--muted); }
+    .hero .lead em { font-style: normal; color: var(--ink-2); }
+    .hero .ornament { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px 0 0; color: var(--gold); font-size: .7rem; }
+    .hero .ornament::before, .hero .ornament::after { content: ""; width: 44px; height: 1px; background: currentColor; opacity: .5; }
+
+    .search { margin: 28px auto 0; max-width: 760px; display: flex; align-items: center; background: var(--surface); border: 1px solid var(--line-2); border-radius: 16px; box-shadow: var(--shadow); transition: border-color .15s, box-shadow .15s; }
+    .search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft), var(--shadow); }
+    .search > i { padding: 0 6px 0 20px; color: var(--muted); font-size: 1.05rem; }
+    .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; height: 60px; padding: 0 8px; font-size: 1.15rem; }
+    .search input::placeholder { color: var(--muted); }
+    .search .clear { border: 0; background: transparent; color: var(--muted); padding: 8px; font-size: 1.05rem; }
+    .search .clear:hover { color: var(--ink); }
+    .search select { border: 0; border-left: 1px solid var(--line); background: transparent; height: 36px; padding: 0 34px 0 16px; margin-right: 10px; font-size: .85rem; color: var(--ink-2); outline: 0; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%238a8f98' stroke-width='1.5'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+
+    .index-strip { margin: 22px auto 0; max-width: 1112px; }
+    .index-head { display: flex; justify-content: space-between; align-items: baseline; font-size: .78rem; color: var(--muted); padding: 0 4px 8px; }
+    .index-head b { color: var(--gold); font-weight: 600; }
+    .az { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+    .az button { min-width: 34px; height: 34px; padding: 0 8px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--ink-2); font-family: var(--serif); font-weight: 700; font-size: .95rem; transition: background .15s, color .15s, border-color .15s; }
+    .az button:hover { background: var(--surface); border-color: var(--line-2); color: var(--ink); }
+    .az button.is-active { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+    .az button.all { font-family: var(--sans); font-size: .82rem; font-weight: 600; padding: 0 14px; margin-right: 6px; border-color: var(--line-2); background: var(--surface); }
+    .az button.all.is-active { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+    /* ---------- Stats ---------- */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .stat { padding: 16px 22px; display: flex; flex-direction: column; gap: 2px; }
+    .stat + .stat { border-left: 1px solid var(--line); }
+    .stat .label { font-size: .75rem; color: var(--muted); letter-spacing: .04em; }
+    .stat .value { font-family: var(--mono); font-weight: 700; font-size: 1.45rem; color: var(--ink); line-height: 1.25; }
+    .stat .value.accent { color: var(--gold); }
+
+    /* ---------- Results ---------- */
+    main.container { flex: 1; padding-top: 18px; padding-bottom: 40px; display: flex; flex-direction: column; gap: 14px; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+    .toolbar .group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .dropdown { position: relative; }
+    .menu { position: absolute; right: 0; top: calc(100% + 6px); min-width: 210px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 6px; z-index: 40; }
+    .menu-title { font-size: .72rem; color: var(--muted); padding: 6px 10px 4px; letter-spacing: .06em; }
+    .menu button, .menu label { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 0; background: transparent; font-size: .88rem; text-align: left; cursor: pointer; color: var(--ink); }
+    .menu button:hover, .menu label:hover { background: var(--surface-2); }
+    .menu button i { width: 16px; text-align: center; color: var(--ink-2); }
+    .menu hr { border: 0; border-top: 1px solid var(--line); margin: 5px 4px; }
+    .menu input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; }
+
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+    .pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 18px; font-size: .84rem; color: var(--ink-2); background: var(--surface-2); }
+    .pager.top { border-bottom: 1px solid var(--line); }
+    .pager.bottom { border-top: 1px solid var(--line); }
+    .pager .left { display: flex; align-items: center; gap: 10px; }
+    .pager select { height: 32px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--surface); padding: 0 10px; font-size: .84rem; outline: 0; }
+    .pager select:focus { border-color: var(--accent); }
+    .pager .range { font-family: var(--mono); font-size: .8rem; color: var(--muted); }
+    .pager .nav { display: flex; align-items: center; gap: 4px; }
+    .pager .nav button { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); display: grid; place-items: center; font-size: .78rem; transition: background .15s, color .15s; }
+    .pager .nav button:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-soft); }
+    .pager .nav button:disabled { opacity: .35; cursor: not-allowed; }
+    .pager .page { padding: 0 12px; font-family: var(--mono); font-size: .8rem; color: var(--ink); white-space: nowrap; }
+
+    .table-wrap { overflow: auto; max-height: 720px; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); text-align: left; font-size: .74rem; font-weight: 600; color: var(--muted); letter-spacing: .06em; padding: 12px 18px; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+    thead th.sortable { cursor: pointer; user-select: none; }
+    thead th.sortable:hover { color: var(--ink); }
+    thead th .sort { margin-left: 6px; font-size: .8em; opacity: .45; }
+    thead th.sorted { color: var(--accent); }
+    thead th.sorted .sort { opacity: 1; }
+    thead th.num, td.num { width: 64px; text-align: right; }
+    thead th.tab, td.tab { width: 64px; text-align: center; }
+    tbody tr { border-bottom: 1px solid var(--line); cursor: pointer; transition: background .12s; }
+    tbody tr:last-child { border-bottom: 0; }
+    tbody tr:hover { background: var(--surface-2); }
+    tbody tr:hover .cell-chi { color: var(--accent); }
+    td { padding: 12px 18px; vertical-align: middle; }
+    td.num { font-family: var(--mono); font-size: .78rem; color: var(--muted); }
+    .tab-chip { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--line-2); font-family: var(--serif); font-weight: 700; font-size: .82rem; color: var(--ink-2); }
+    .cell-eng { font-weight: 600; font-size: 1.02rem; color: var(--ink); letter-spacing: .005em; }
+    .cell-chi { font-family: var(--serif); font-weight: 700; font-size: 1.12rem; letter-spacing: .06em; transition: color .12s; }
+    .cell-muted { color: var(--muted); font-size: .85rem; }
+    .code { display: inline-block; font-family: var(--mono); font-weight: 700; font-size: 1rem; letter-spacing: .14em; padding: 3px 9px 3px 11px; border-radius: 7px; background: var(--code-bg); color: var(--code-ink); }
+    mark.highlight { background: var(--mark); color: var(--mark-ink); padding: 0 2px; border-radius: 3px; }
+
+    .cards-wrap { padding: 18px; max-height: 720px; overflow-y: auto; background: var(--surface-2); }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .15s; display: flex; flex-direction: column; gap: 10px; }
+    .card:hover { border-color: var(--accent); box-shadow: var(--shadow); transform: translateY(-1px); }
+    .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .card-meta { font-family: var(--mono); font-size: .72rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .card .cell-chi { font-size: 1.45rem; line-height: 1.3; }
+    .card .cell-eng { font-size: .95rem; color: var(--ink-2); font-weight: 500; }
+
+    .state { padding: 72px 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+    .state .glyph { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; font-size: 1.3rem; background: var(--accent-soft); color: var(--accent); margin-bottom: 6px; }
+    .state h3 { margin: 0; font-family: var(--serif); font-size: 1.15rem; }
+    .state p { margin: 0; color: var(--muted); font-size: .88rem; max-width: 420px; }
+    .spinner { width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid var(--line-2); border-top-color: var(--accent); animation: spin .8s linear infinite; margin-bottom: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .78rem; }
+    footer .container { padding-top: 18px; padding-bottom: 22px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+    footer b { color: var(--ink-2); font-weight: 600; }
+
+    /* ---------- Modal ---------- */
+    .modal { position: fixed; inset: 0; z-index: 50; background: rgba(15, 20, 28, .45); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .dialog { width: 100%; max-width: 460px; background: var(--surface); border-radius: 18px; box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--line); animation: pop .18s ease-out; }
+    @keyframes pop { from { transform: translateY(6px) scale(.98); opacity: 0; } }
+    .dialog-head { padding: 22px 24px 16px; display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); }
+    .dialog-head .eyebrow { font-family: var(--mono); font-size: .72rem; color: var(--gold); letter-spacing: .06em; }
+    .dialog-head h3 { margin: 4px 0 0; font-size: 1.35rem; font-weight: 700; }
+    .dialog-head .close { border: 0; background: transparent; color: var(--muted); width: 34px; height: 34px; border-radius: 8px; font-size: 1.05rem; }
+    .dialog-head .close:hover { background: var(--surface-2); color: var(--ink); }
+    .dialog-body { padding: 8px 24px; }
+    .field { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 14px 0; border-bottom: 1px dashed var(--line); }
+    .field:last-child { border-bottom: 0; }
+    .field .k { font-size: .78rem; color: var(--muted); letter-spacing: .04em; white-space: nowrap; }
+    .field .v { font-size: 1.1rem; font-weight: 600; text-align: right; word-break: break-word; white-space: pre-wrap; }
+    .field .v.chi { font-family: var(--serif); font-size: 1.3rem; letter-spacing: .06em; }
+    .field .v .code { font-size: 1.15rem; }
+    .dialog-foot { padding: 14px 24px 18px; display: flex; justify-content: space-between; gap: 10px; background: var(--surface-2); border-top: 1px solid var(--line); }
+
+    /* ---------- Toast ---------- */
+    #toastContainer { position: fixed; right: 20px; bottom: 20px; z-index: 60; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-radius: 12px; background: var(--ink); color: var(--surface); font-size: .86rem; box-shadow: var(--shadow-lg); opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s; }
+    .toast.show { opacity: 1; transform: none; }
+    .toast i { font-size: 1rem; }
+    .toast.success i { color: #7fcf9c; }
+    .toast.warning i { color: #f3c969; }
+    .toast.error i { color: #f19a97; }
+    .toast.info i { color: #9cc3ea; }
+
+    .scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+    .scroll::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 10px; border: 3px solid var(--surface); }
+    .scroll::-webkit-scrollbar-track { background: transparent; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 860px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .stat:nth-child(3) { border-left: 0; }
+      .stat:nth-child(n+3) { border-top: 1px solid var(--line); }
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
-    mark.highlight {
-      background-color: #fef08a;
-      color: #713f12;
-      font-weight: 800;
-      padding: 0.15rem 0.35rem;
-      border-radius: 0.35rem;
-    }
-    body.font-size-large {
-      font-size: 1.125rem;
-    }
-    body.font-size-xlarge {
-      font-size: 1.25rem;
+    @media (max-width: 640px) {
+      .container { padding: 0 16px; }
+      .topbar .container { height: auto; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+      .brand-sub .sep, #lastUpdated { display: none; }
+      .btn .label, .btn .caret { display: none; }
+      .btn:not(.icon):has(.label) { width: 36px; padding: 0; justify-content: center; }
+      .hero { padding: 28px 0 18px; }
+      .hero h1 { font-size: 1.3rem; letter-spacing: .02em; }
+      .hero .lead { font-size: .86rem; }
+      .search input { height: 52px; font-size: 1.02rem; }
+      .search select { max-width: 116px; padding-left: 10px; }
+      .az button { min-width: 30px; height: 30px; padding: 0 6px; font-size: .88rem; }
+      .az button.all { width: 100%; margin: 0 0 4px; }
+      .stat { padding: 12px 16px; }
+      .stat .value { font-size: 1.2rem; }
+      td, thead th { padding: 10px 12px; }
+      td.num, thead th.num { display: none; }
+      .pager { padding: 10px 12px; }
     }
   </style>
 </head>
-<body id="appBody" class="bg-slate-100/90 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white font-sans text-base">
+<body id="appBody">
 
-  <!-- Top Navigation Header -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
-      
-      <!-- Brand & Title -->
-      <div class="flex items-center gap-3.5">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 flex-shrink-0">
-          <i class="fa-solid fa-book-bookmark text-2xl"></i>
-        </div>
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="container">
+      <div class="brand">
+        <div class="seal">譯</div>
         <div>
-          <div class="flex items-center gap-2.5 flex-wrap">
-            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 leading-none">外文姓名譯名查詢系統</h1>
-            <span id="tabCountBadge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-              全 26 個分頁已就緒
-            </span>
+          <div class="brand-title">外文姓名譯名查詢</div>
+          <div class="brand-sub">
+            <span id="statusDot" class="status-dot" data-state="loading"></span>
+            <span id="statusText">連線中…</span>
+            <span class="sep">·</span>
+            <span id="tabCountBadge">26 個分頁</span>
+            <span class="sep">·</span>
+            <span id="lastUpdated"></span>
           </div>
-          <p class="text-xs sm:text-sm text-slate-500 font-semibold flex items-center gap-2 mt-1">
-            <span class="flex items-center gap-1.5">
-              <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
-              <span id="statusText" class="font-bold text-slate-700">已連線 Google 試算表</span>
-            </span>
-            <span class="text-slate-300">•</span>
-            <span id="lastUpdated" class="text-slate-400"></span>
-          </p>
         </div>
       </div>
 
-      <!-- Action Buttons & Font Resizer -->
-      <div class="flex items-center gap-2">
-        
-        <!-- Font Size Switcher -->
-        <div class="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200 text-xs font-bold text-slate-700" title="調整字體大小">
-          <button id="fontNormalBtn" class="px-2 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">預設</button>
-          <button id="fontLargeBtn" class="px-2 py-1 rounded-lg bg-white shadow-sm text-blue-700 font-black transition">大字體</button>
-          <button id="fontXLargeBtn" class="px-2 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">特大</button>
+      <div class="topbar-actions">
+        <div class="seg" title="調整字體大小">
+          <button id="fontNormalBtn">小</button>
+          <button id="fontLargeBtn" class="is-active">中</button>
+          <button id="fontXLargeBtn">大</button>
         </div>
-
-        <!-- Reload All Button -->
-        <button id="refreshBtn" class="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 active:bg-blue-200 text-xs font-bold py-2 px-3.5 rounded-xl transition border border-blue-200 shadow-sm" title="重新同步全部 26 分頁">
+        <button id="refreshBtn" class="btn icon" title="重新同步全部 26 個分頁">
           <i id="refreshIcon" class="fa-solid fa-arrows-rotate"></i>
-          <span class="hidden sm:inline">重新同步</span>
         </button>
-
-        <!-- Open Sheet Link -->
-        <a id="sheetLink" href="https://docs.google.com/spreadsheets/d/1DprJwhRdYzm_5icKpEAEZ1pOO-v22eCNrJi1EWfj9HA/edit" target="_blank" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3.5 rounded-xl transition shadow-sm shadow-emerald-600/30" title="在 Google 試算表開啟">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i>
-          <span class="hidden sm:inline">開啟原表</span>
+        <a id="sheetLink" class="btn" href="https://docs.google.com/spreadsheets/d/1DprJwhRdYzm_5icKpEAEZ1pOO-v22eCNrJi1EWfj9HA/edit" target="_blank" rel="noopener" title="在 Google 試算表開啟">
+          <i class="fa-solid fa-table"></i><span class="label">開啟原表</span>
         </a>
       </div>
     </div>
+    <div id="loadProgressBarContainer" class="progress hidden"><div id="loadProgressBar"></div></div>
   </header>
 
-  <!-- Hero Search & Filter Section -->
-  <section class="bg-gradient-to-b from-blue-700 via-indigo-700 to-slate-900 text-white pt-8 pb-14 px-4 sm:px-6 lg:px-8 shadow-inner relative overflow-hidden">
-    <div class="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+  <!-- Hero: search + A–Z index -->
+  <section class="hero">
+    <div class="container">
+      <h1>外文姓名・中文譯名・四角號碼</h1>
+      <p class="lead">圖書館編目用譯名錄，收錄 <b id="heroTotal">42,972</b> 筆，涵蓋 A–Z 共 26 個分頁<br><span class="hint">可用空白分隔多個關鍵字，例如：<em>Smith</em>、<em>札巴拉</em>、<em>2442</em></span></p>
+      <div class="ornament">◆</div>
 
-    <div class="max-w-5xl mx-auto space-y-5 relative z-10">
-      
-      <!-- Headline -->
-      <div class="text-center space-y-1.5">
-        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-sm">外文姓名、中譯名與四角號碼全庫查詢</h2>
-        <p class="text-sm sm:text-base text-blue-100 font-medium max-w-2xl mx-auto">
-          已整合 Google 試算表全部 26 個分頁 (A ~ Z)，支援全資料庫 4 萬筆 (42,972 筆) 跨分頁即時檢索！
-        </p>
+      <div class="search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="globalSearch" placeholder="搜尋外文原名、中文譯名或四角號碼" autocomplete="off" autofocus>
+        <button id="clearSearchBtn" class="clear hidden" title="清除"><i class="fa-solid fa-circle-xmark"></i></button>
+        <select id="filterColumnSelect" title="搜尋範圍">
+          <option value="_all_">全部欄位</option>
+        </select>
       </div>
 
-      <!-- Main Search Input Box -->
-      <div class="relative bg-white rounded-2xl p-2 shadow-2xl shadow-slate-950/40 border-2 border-white/30 flex flex-col sm:flex-row items-center gap-2">
-        
-        <!-- Search icon & input -->
-        <div class="relative flex-1 w-full flex items-center">
-          <div class="pl-4 text-blue-600 text-xl pointer-events-none">
-            <i class="fa-solid fa-magnifying-glass"></i>
-          </div>
-          <input 
-            type="text" 
-            id="globalSearch" 
-            placeholder="全庫跨分頁查詢 (例如: Smith, 札巴拉, 左伊, 2442)..." 
-            class="w-full pl-3 pr-10 py-3 sm:py-3.5 text-slate-900 text-base sm:text-lg font-bold placeholder:text-slate-400 placeholder:font-medium focus:outline-none rounded-xl"
-            autocomplete="off"
-            autofocus
-          >
-          <button id="clearSearchBtn" class="hidden absolute right-3 text-slate-400 hover:text-slate-600 p-1.5 rounded-xl">
-            <i class="fa-solid fa-circle-xmark text-xl"></i>
-          </button>
+      <div class="index-strip">
+        <div class="index-head">
+          <span>依字母分頁瀏覽</span>
+          <b id="activeTabStatus"></b>
         </div>
-
-        <!-- Scope Selector -->
-        <div class="flex items-center gap-2 w-full sm:w-auto justify-between border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 sm:pl-3">
-          <select id="filterColumnSelect" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold py-3 px-3.5 rounded-xl border-0 focus:ring-2 focus:ring-blue-500 cursor-pointer w-full sm:w-auto">
-            <option value="_all_">🔍 所有欄位搜尋</option>
-          </select>
-        </div>
+        <div id="tabButtonsContainer" class="az"></div>
       </div>
-
-      <!-- Multi-Tab Quick Switcher (ALL + A to Z) -->
-      <div class="space-y-2">
-        <div class="flex items-center justify-between text-xs sm:text-sm font-bold text-blue-100 px-1">
-          <span class="flex items-center gap-2">
-            <i class="fa-solid fa-folder-tree text-amber-300"></i>
-            <span>分頁切換 (可選擇特定分頁或查詢全部分頁):</span>
-          </span>
-          <span id="activeTabStatus" class="text-amber-300 font-extrabold text-xs"></span>
-        </div>
-        <div id="tabButtonsContainer" class="flex flex-wrap items-center justify-center gap-1.5 bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/20">
-          <!-- Injected via JS -->
-        </div>
-      </div>
-
-      <!-- Loading Progress Bar (Visible while streaming tabs) -->
-      <div id="loadProgressBarContainer" class="hidden bg-white/15 rounded-full p-0.5 backdrop-blur overflow-hidden">
-        <div id="loadProgressBar" class="bg-gradient-to-r from-amber-400 to-emerald-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-      </div>
-
     </div>
   </section>
 
-  <!-- Stat Counter Cards -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-7 relative z-20">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-      
-      <!-- Card 1: Total Records -->
-      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-card border border-slate-200 flex items-center gap-3.5 hover:shadow-card-hover transition">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
-          <i class="fa-solid fa-database"></i>
-        </div>
-        <div>
-          <div class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-400">總資料庫筆數</div>
-          <div id="statTotalRows" class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">0</div>
-        </div>
+  <!-- Stats -->
+  <div class="container">
+    <div class="stats">
+      <div class="stat">
+        <span class="label">總資料筆數</span>
+        <span id="statTotalRows" class="value">0</span>
       </div>
-
-      <!-- Card 2: Filtered Records -->
-      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-card border border-slate-200 flex items-center gap-3.5 hover:shadow-card-hover transition">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
-          <i class="fa-solid fa-filter"></i>
-        </div>
-        <div>
-          <div class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-400">目前符合筆數</div>
-          <div id="statFilteredRows" class="text-2xl sm:text-3xl font-black text-amber-600 leading-tight">0</div>
-        </div>
+      <div class="stat">
+        <span class="label">符合條件</span>
+        <span id="statFilteredRows" class="value accent">0</span>
       </div>
-
-      <!-- Card 3: Current Sheet Records -->
-      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-card border border-slate-200 flex items-center gap-3.5 hover:shadow-card-hover transition">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
-          <i class="fa-solid fa-table-cells"></i>
-        </div>
-        <div>
-          <div class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-400" id="currentTabStatLabel">當前分頁筆數</div>
-          <div id="statCurrentTabRows" class="text-2xl sm:text-3xl font-black text-emerald-600 leading-tight">0</div>
-        </div>
+      <div class="stat">
+        <span class="label" id="currentTabStatLabel">全庫總筆數</span>
+        <span id="statCurrentTabRows" class="value">0</span>
       </div>
-
-      <!-- Card 4: Total Tabs Loaded -->
-      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-card border border-slate-200 flex items-center gap-3.5 hover:shadow-card-hover transition">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
-          <i class="fa-solid fa-layer-group"></i>
-        </div>
-        <div>
-          <div class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-400">已載入分頁數</div>
-          <div id="statTabsLoaded" class="text-2xl sm:text-3xl font-black text-purple-600 leading-tight">26 / 26</div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Main Content Container -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
-
-    <!-- Controls Bar -->
-    <div class="bg-white rounded-2xl p-3.5 sm:p-4 shadow-card border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-3">
-      
-      <!-- Left side: Mode Switch & Reset -->
-      <div class="flex items-center gap-3 flex-wrap">
-        <span class="text-xs sm:text-sm font-bold text-slate-600">檢視模式:</span>
-        <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
-          <button id="viewTableBtn" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-black transition bg-white text-blue-700 shadow-sm">
-            <i class="fa-solid fa-table-list"></i>
-            <span>表格清單</span>
-          </button>
-          <button id="viewCardBtn" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900">
-            <i class="fa-solid fa-grip"></i>
-            <span>大卡片網格</span>
-          </button>
-        </div>
-
-        <button id="resetFiltersBtn" class="hidden text-xs sm:text-sm bg-rose-50 hover:bg-rose-100 text-rose-700 font-extrabold py-1.5 px-3.5 rounded-xl border border-rose-200 transition flex items-center gap-1.5">
-          <i class="fa-solid fa-arrow-rotate-left"></i>
-          <span>清除所有搜尋條件</span>
-        </button>
-      </div>
-
-      <!-- Right side: Export & Columns -->
-      <div class="flex items-center gap-2.5 w-full md:w-auto justify-end">
-        
-        <!-- Column Toggle Menu -->
-        <div class="relative">
-          <button id="colToggleBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs sm:text-sm font-bold py-2 px-3.5 rounded-xl flex items-center gap-1.5 transition border border-slate-200">
-            <i class="fa-solid fa-table-columns text-slate-500"></i>
-            <span>欄位開關</span>
-            <i class="fa-solid fa-chevron-down text-xs text-slate-400 ml-0.5"></i>
-          </button>
-          <div id="colToggleMenu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-40">
-            <div class="px-3.5 py-2 border-b border-slate-100 flex justify-between items-center text-xs font-black text-slate-400 uppercase">
-              <span>選擇顯示欄位</span>
-            </div>
-            <div id="colCheckboxes" class="px-2 py-1.5 space-y-1"></div>
-          </div>
-        </div>
-
-        <!-- Export Menu -->
-        <div class="relative">
-          <button id="exportMenuBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold py-2 px-4 rounded-xl flex items-center gap-1.5 transition shadow-sm shadow-blue-600/30">
-            <i class="fa-solid fa-file-export"></i>
-            <span>匯出資料</span>
-            <i class="fa-solid fa-chevron-down text-xs text-blue-200 ml-0.5"></i>
-          </button>
-          <div id="exportMenu" class="hidden absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-40">
-            <button id="exportCsvBtn" class="w-full text-left px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-3">
-              <i class="fa-solid fa-file-csv text-emerald-600 text-base"></i>
-              <span>匯出 CSV 檔案</span>
-            </button>
-            <button id="exportJsonBtn" class="w-full text-left px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-3">
-              <i class="fa-solid fa-file-code text-amber-600 text-base"></i>
-              <span>匯出 JSON 檔案</span>
-            </button>
-            <button id="copyTableBtn" class="w-full text-left px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-3 border-t border-slate-100">
-              <i class="fa-regular fa-copy text-blue-600 text-base"></i>
-              <span>複製篩選結果文字</span>
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-
-    <!-- Data Display Area -->
-    <div class="bg-white rounded-2xl shadow-card border border-slate-200 overflow-hidden flex flex-col">
-      
-      <!-- Top Pagination Header Bar -->
-      <div id="topPaginationBar" class="p-3.5 sm:p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-700 font-bold">
-        <div class="flex items-center gap-3">
-          <span class="text-slate-500">每頁顯示:</span>
-          <select id="topPageSizeSelect" class="bg-white border border-slate-200 rounded-xl py-1.5 px-3 text-sm font-black text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer shadow-sm">
-            <option value="20">20 筆</option>
-            <option value="50">50 筆</option>
-            <option value="100">100 筆</option>
-            <option value="200">200 筆</option>
-            <option value="100000">全部顯示</option>
-          </select>
-          <span class="text-slate-500 font-mono text-xs sm:text-sm font-bold" id="topPageRangeText">顯示第 0 - 0 筆 / 共 0 筆</span>
-        </div>
-
-        <!-- Top Page Navigation Buttons -->
-        <div class="flex items-center gap-2" id="topPaginationControls">
-          <button id="topFirstPageBtn" class="p-2 px-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="第一頁">
-            <i class="fa-solid fa-angles-left text-xs"></i>
-          </button>
-          <button id="topPrevPageBtn" class="p-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="上一頁">
-            <i class="fa-solid fa-angle-left text-sm"></i>
-          </button>
-          <span class="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 font-black text-slate-900 shadow-sm text-xs sm:text-sm" id="topCurrentPageIndicator">第 1 / 1 頁</span>
-          <button id="topNextPageBtn" class="p-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="下一頁">
-            <i class="fa-solid fa-angle-right text-sm"></i>
-          </button>
-          <button id="topLastPageBtn" class="p-2 px-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="最後一頁">
-            <i class="fa-solid fa-angles-right text-xs"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Table View Container -->
-      <div id="tableViewWrapper" class="relative overflow-x-auto max-h-[720px] custom-scrollbar">
-        <table id="dataTable" class="w-full text-left border-collapse">
-          <thead class="bg-slate-100 text-slate-800 text-sm font-black uppercase tracking-wider sticky top-0 z-20 border-b border-slate-200 shadow-sm">
-            <tr id="tableHeaderRow">
-              <th class="py-4 px-4 w-16 text-center text-slate-400 font-mono text-sm">#</th>
-              <th class="py-4 px-4 w-20 text-center text-slate-600 text-xs">分頁</th>
-              <!-- Dynamic headers injected here -->
-            </tr>
-          </thead>
-          <tbody id="tableBody" class="divide-y divide-slate-100">
-            <!-- Dynamic rows injected here -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Card View Container (Alternative mode) -->
-      <div id="cardViewWrapper" class="hidden p-6 max-h-[720px] overflow-y-auto custom-scrollbar bg-slate-50/70">
-        <div id="cardGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <!-- Dynamic cards injected here -->
-        </div>
-      </div>
-
-      <!-- Loading State Overlay -->
-      <div id="tableLoading" class="p-20 flex flex-col items-center justify-center gap-4 bg-white">
-        <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-3xl animate-spin">
-          <i class="fa-solid fa-spinner"></i>
-        </div>
-        <p class="text-base font-black text-slate-800 mt-2" id="loadingText">正在載入 26 個分頁資料...</p>
-        <p class="text-sm text-slate-400" id="loadingSubtext">已支援全庫 42,972 筆整合查詢</p>
-      </div>
-
-      <!-- Empty State -->
-      <div id="tableEmpty" class="hidden p-20 flex flex-col items-center justify-center gap-4 text-center bg-white">
-        <div class="w-20 h-20 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center text-3xl mb-1">
-          <i class="fa-solid fa-magnifying-glass"></i>
-        </div>
-        <h3 class="text-xl font-black text-slate-800">找不到相符的譯名資料</h3>
-        <p class="text-sm text-slate-500 max-w-md">請檢查輸入關鍵字，或切換至「全部分頁」搜尋全庫資料。</p>
-        <button onclick="document.getElementById('resetFiltersBtn').click()" class="mt-2 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 font-extrabold py-2 px-4 rounded-xl border border-blue-200 transition">
-          清除搜尋條件
-        </button>
-      </div>
-
-      <!-- Error State Overlay -->
-      <div id="tableError" class="hidden p-16 flex flex-col items-center justify-center gap-4 text-center bg-white">
-        <div class="w-16 h-16 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
-        <div class="space-y-1 max-w-md">
-          <h3 class="text-lg font-black text-slate-800" id="errorTitle">無法載入試算表資料</h3>
-          <p class="text-sm text-slate-500 leading-relaxed" id="errorDesc">請確認網路連線正常或檢查試算表共用權限設定。</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="fetchAllTabsData()" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl transition shadow-sm">
-            重新嘗試連線
-          </button>
-        </div>
-      </div>
-
-      <!-- Pagination Footer -->
-      <div id="paginationBar" class="p-4 sm:p-5 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-700 font-bold">
-        <div class="flex items-center gap-3">
-          <span class="text-slate-500">每頁顯示:</span>
-          <select id="pageSizeSelect" class="bg-white border border-slate-200 rounded-xl py-1.5 px-3 text-sm font-black text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer shadow-sm">
-            <option value="20">20 筆</option>
-            <option value="50">50 筆</option>
-            <option value="100">100 筆</option>
-            <option value="200">200 筆</option>
-            <option value="100000">全部顯示</option>
-          </select>
-          <span class="text-slate-400 font-mono text-xs sm:text-sm" id="pageRangeText">顯示 0 - 0 筆 / 共 0 筆</span>
-        </div>
-
-        <!-- Page navigation buttons -->
-        <div class="flex items-center gap-2" id="paginationControls">
-          <button id="firstPageBtn" class="p-2.5 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="第一頁">
-            <i class="fa-solid fa-angles-left text-xs"></i>
-          </button>
-          <button id="prevPageBtn" class="p-2.5 px-3.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="上一頁">
-            <i class="fa-solid fa-angle-left text-sm"></i>
-          </button>
-          <span class="px-4 py-2 rounded-xl bg-white border border-slate-200 font-black text-slate-900 shadow-sm text-sm" id="currentPageIndicator">第 1 / 1 頁</span>
-          <button id="nextPageBtn" class="p-2.5 px-3.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="下一頁">
-            <i class="fa-solid fa-angle-right text-sm"></i>
-          </button>
-          <button id="lastPageBtn" class="p-2.5 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm" title="最後一頁">
-            <i class="fa-solid fa-angles-right text-xs"></i>
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-  </main>
-
-  <!-- Row Detail Modal -->
-  <div id="detailModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
-      <div class="px-6 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between">
-        <div class="flex items-center gap-3.5">
-          <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xl">
-            <i class="fa-solid fa-address-card"></i>
-          </div>
-          <div>
-            <h3 class="text-lg font-black" id="detailModalTitle">譯名詳細資料</h3>
-            <p class="text-xs text-blue-100 font-medium" id="detailModalSubtitle">第 0 筆記錄</p>
-          </div>
-        </div>
-        <button onclick="closeDetailModal()" class="text-white/80 hover:text-white p-2 rounded-xl hover:bg-white/10 transition">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
-      </div>
-
-      <div class="p-6 space-y-4" id="detailModalBody">
-        <!-- Injected dynamically -->
-      </div>
-
-      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-sm">
-        <button id="copyDetailBtn" class="bg-white hover:bg-slate-100 text-slate-700 font-bold py-2.5 px-4 rounded-xl border border-slate-200 transition shadow-sm flex items-center gap-2">
-          <i class="fa-regular fa-copy text-blue-600"></i>
-          <span>複製這筆文字</span>
-        </button>
-        <button onclick="closeDetailModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl transition shadow-sm">
-          關閉視窗
-        </button>
+      <div class="stat">
+        <span class="label">已載入分頁</span>
+        <span id="statTabsLoaded" class="value">0 / 26</span>
       </div>
     </div>
   </div>
 
-  <!-- Toast Container -->
-  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 pointer-events-none"></div>
+  <!-- Results -->
+  <main class="container">
+    <div class="toolbar">
+      <div class="group">
+        <div class="seg">
+          <button id="viewTableBtn" class="is-active"><i class="fa-solid fa-list"></i>表格</button>
+          <button id="viewCardBtn"><i class="fa-solid fa-grip"></i>卡片</button>
+        </div>
+        <button id="resetFiltersBtn" class="btn ghost-danger hidden">
+          <i class="fa-solid fa-rotate-left"></i><span>清除條件</span>
+        </button>
+      </div>
 
-  <!-- Application Logic Script -->
+      <div class="group">
+        <div class="dropdown">
+          <button id="colToggleBtn" class="btn"><i class="fa-solid fa-table-columns"></i><span class="label">欄位</span><i class="fa-solid fa-chevron-down caret"></i></button>
+          <div id="colToggleMenu" class="menu hidden">
+            <div class="menu-title">顯示欄位</div>
+            <div id="colCheckboxes"></div>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button id="exportMenuBtn" class="btn primary"><i class="fa-solid fa-download"></i><span class="label">匯出</span><i class="fa-solid fa-chevron-down caret"></i></button>
+          <div id="exportMenu" class="menu hidden">
+            <button id="exportCsvBtn"><i class="fa-solid fa-file-csv"></i>匯出 CSV</button>
+            <button id="exportJsonBtn"><i class="fa-solid fa-file-code"></i>匯出 JSON</button>
+            <hr>
+            <button id="copyTableBtn"><i class="fa-solid fa-copy"></i>複製篩選結果</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div id="topPaginationBar" class="pager top">
+        <div class="left">
+          <select id="topPageSizeSelect" title="每頁筆數">
+            <option value="20">每頁 20 筆</option>
+            <option value="50">每頁 50 筆</option>
+            <option value="100">每頁 100 筆</option>
+            <option value="200">每頁 200 筆</option>
+            <option value="100000">全部顯示</option>
+          </select>
+          <span class="range" id="topPageRangeText">0 – 0 / 0</span>
+        </div>
+        <div class="nav">
+          <button id="topFirstPageBtn" title="第一頁"><i class="fa-solid fa-angles-left"></i></button>
+          <button id="topPrevPageBtn" title="上一頁"><i class="fa-solid fa-angle-left"></i></button>
+          <span class="page" id="topCurrentPageIndicator">1 / 1</span>
+          <button id="topNextPageBtn" title="下一頁"><i class="fa-solid fa-angle-right"></i></button>
+          <button id="topLastPageBtn" title="最後一頁"><i class="fa-solid fa-angles-right"></i></button>
+        </div>
+      </div>
+
+      <div id="tableViewWrapper" class="table-wrap scroll">
+        <table id="dataTable">
+          <thead><tr id="tableHeaderRow"></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div id="cardViewWrapper" class="cards-wrap scroll hidden">
+        <div id="cardGrid" class="cards"></div>
+      </div>
+
+      <div id="tableLoading" class="state">
+        <div class="spinner"></div>
+        <h3 id="loadingText">正在載入 26 個分頁資料…</h3>
+        <p id="loadingSubtext">首次載入約需數秒</p>
+      </div>
+
+      <div id="tableEmpty" class="state hidden">
+        <div class="glyph"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <h3>找不到相符的譯名</h3>
+        <p>請檢查關鍵字，或切換到「全部」分頁搜尋全庫資料。</p>
+        <button class="btn" style="margin-top:8px" onclick="document.getElementById('resetFiltersBtn').click()">清除搜尋條件</button>
+      </div>
+
+      <div id="tableError" class="state hidden">
+        <div class="glyph" style="background:color-mix(in srgb, var(--danger) 12%, transparent);color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <h3 id="errorTitle">無法載入試算表資料</h3>
+        <p id="errorDesc">請確認網路連線，或檢查試算表的共用權限。</p>
+        <button class="btn primary" style="margin-top:8px" onclick="fetchAllTabsData()">重新連線</button>
+      </div>
+
+      <div id="paginationBar" class="pager bottom">
+        <div class="left">
+          <select id="pageSizeSelect" title="每頁筆數">
+            <option value="20">每頁 20 筆</option>
+            <option value="50">每頁 50 筆</option>
+            <option value="100">每頁 100 筆</option>
+            <option value="200">每頁 200 筆</option>
+            <option value="100000">全部顯示</option>
+          </select>
+          <span class="range" id="pageRangeText">0 – 0 / 0</span>
+        </div>
+        <div class="nav">
+          <button id="firstPageBtn" title="第一頁"><i class="fa-solid fa-angles-left"></i></button>
+          <button id="prevPageBtn" title="上一頁"><i class="fa-solid fa-angle-left"></i></button>
+          <span class="page" id="currentPageIndicator">1 / 1</span>
+          <button id="nextPageBtn" title="下一頁"><i class="fa-solid fa-angle-right"></i></button>
+          <button id="lastPageBtn" title="最後一頁"><i class="fa-solid fa-angles-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span><b>著者號取碼規則</b>　1 字取 4 碼；2 字各取上兩角；3 字以上取前 3 字（首字 2 碼，第 2、3 字各 1 碼）</span>
+      <span>資料來源：Google 試算表・號碼依輔仁大學四角號碼查詢台核對</span>
+    </div>
+  </footer>
+
+  <!-- Detail modal -->
+  <div id="detailModal" class="modal hidden">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+      <div class="dialog-head">
+        <div>
+          <div class="eyebrow" id="detailModalSubtitle"></div>
+          <h3 id="detailModalTitle">譯名詳細資料</h3>
+        </div>
+        <button class="close" onclick="closeDetailModal()" title="關閉"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="dialog-body" id="detailModalBody"></div>
+      <div class="dialog-foot">
+        <button id="copyDetailBtn" class="btn"><i class="fa-solid fa-copy"></i>複製這筆</button>
+        <button class="btn primary" onclick="closeDetailModal()">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer"></div>
+
   <script>
     // Complete 26 Alphabet Sub-tabs specification from Google Sheet (2026-09-22 匯入輔大字典修正版後的新 GID)
     const ALL_SHEET_TABS = [
@@ -529,100 +551,95 @@
     };
 
     // Elements
+    const $ = id => document.getElementById(id);
     const elements = {
-      appBody: document.getElementById('appBody'),
-      statusDot: document.getElementById('statusDot'),
-      statusText: document.getElementById('statusText'),
-      lastUpdated: document.getElementById('lastUpdated'),
-      tabCountBadge: document.getElementById('tabCountBadge'),
-      globalSearch: document.getElementById('globalSearch'),
-      clearSearchBtn: document.getElementById('clearSearchBtn'),
-      filterColumnSelect: document.getElementById('filterColumnSelect'),
-      tabButtonsContainer: document.getElementById('tabButtonsContainer'),
-      activeTabStatus: document.getElementById('activeTabStatus'),
-      loadProgressBarContainer: document.getElementById('loadProgressBarContainer'),
-      loadProgressBar: document.getElementById('loadProgressBar'),
-      statTotalRows: document.getElementById('statTotalRows'),
-      statFilteredRows: document.getElementById('statFilteredRows'),
-      statCurrentTabRows: document.getElementById('statCurrentTabRows'),
-      currentTabStatLabel: document.getElementById('currentTabStatLabel'),
-      statTabsLoaded: document.getElementById('statTabsLoaded'),
-      viewTableBtn: document.getElementById('viewTableBtn'),
-      viewCardBtn: document.getElementById('viewCardBtn'),
-      tableViewWrapper: document.getElementById('tableViewWrapper'),
-      cardViewWrapper: document.getElementById('cardViewWrapper'),
-      cardGrid: document.getElementById('cardGrid'),
-      dataTable: document.getElementById('dataTable'),
-      tableHeaderRow: document.getElementById('tableHeaderRow'),
-      tableBody: document.getElementById('tableBody'),
-      tableLoading: document.getElementById('tableLoading'),
-      loadingText: document.getElementById('loadingText'),
-      tableEmpty: document.getElementById('tableEmpty'),
-      tableError: document.getElementById('tableError'),
-      errorTitle: document.getElementById('errorTitle'),
-      errorDesc: document.getElementById('errorDesc'),
-      resetFiltersBtn: document.getElementById('resetFiltersBtn'),
-      pageSizeSelect: document.getElementById('pageSizeSelect'),
-      pageRangeText: document.getElementById('pageRangeText'),
-      currentPageIndicator: document.getElementById('currentPageIndicator'),
-      firstPageBtn: document.getElementById('firstPageBtn'),
-      prevPageBtn: document.getElementById('prevPageBtn'),
-      nextPageBtn: document.getElementById('nextPageBtn'),
-      lastPageBtn: document.getElementById('lastPageBtn'),
-      topPageSizeSelect: document.getElementById('topPageSizeSelect'),
-      topPageRangeText: document.getElementById('topPageRangeText'),
-      topCurrentPageIndicator: document.getElementById('topCurrentPageIndicator'),
-      topFirstPageBtn: document.getElementById('topFirstPageBtn'),
-      topPrevPageBtn: document.getElementById('topPrevPageBtn'),
-      topNextPageBtn: document.getElementById('topNextPageBtn'),
-      topLastPageBtn: document.getElementById('topLastPageBtn'),
-      refreshBtn: document.getElementById('refreshBtn'),
-      refreshIcon: document.getElementById('refreshIcon'),
-      colToggleBtn: document.getElementById('colToggleBtn'),
-      colToggleMenu: document.getElementById('colToggleMenu'),
-      colCheckboxes: document.getElementById('colCheckboxes'),
-      exportMenuBtn: document.getElementById('exportMenuBtn'),
-      exportMenu: document.getElementById('exportMenu'),
-      exportCsvBtn: document.getElementById('exportCsvBtn'),
-      exportJsonBtn: document.getElementById('exportJsonBtn'),
-      copyTableBtn: document.getElementById('copyTableBtn'),
-      sheetLink: document.getElementById('sheetLink'),
-      fontNormalBtn: document.getElementById('fontNormalBtn'),
-      fontLargeBtn: document.getElementById('fontLargeBtn'),
-      fontXLargeBtn: document.getElementById('fontXLargeBtn')
+      appBody: $('appBody'),
+      statusDot: $('statusDot'),
+      statusText: $('statusText'),
+      lastUpdated: $('lastUpdated'),
+      tabCountBadge: $('tabCountBadge'),
+      heroTotal: $('heroTotal'),
+      globalSearch: $('globalSearch'),
+      clearSearchBtn: $('clearSearchBtn'),
+      filterColumnSelect: $('filterColumnSelect'),
+      tabButtonsContainer: $('tabButtonsContainer'),
+      activeTabStatus: $('activeTabStatus'),
+      loadProgressBarContainer: $('loadProgressBarContainer'),
+      loadProgressBar: $('loadProgressBar'),
+      statTotalRows: $('statTotalRows'),
+      statFilteredRows: $('statFilteredRows'),
+      statCurrentTabRows: $('statCurrentTabRows'),
+      currentTabStatLabel: $('currentTabStatLabel'),
+      statTabsLoaded: $('statTabsLoaded'),
+      viewTableBtn: $('viewTableBtn'),
+      viewCardBtn: $('viewCardBtn'),
+      tableViewWrapper: $('tableViewWrapper'),
+      cardViewWrapper: $('cardViewWrapper'),
+      cardGrid: $('cardGrid'),
+      dataTable: $('dataTable'),
+      tableHeaderRow: $('tableHeaderRow'),
+      tableBody: $('tableBody'),
+      tableLoading: $('tableLoading'),
+      loadingText: $('loadingText'),
+      tableEmpty: $('tableEmpty'),
+      tableError: $('tableError'),
+      errorTitle: $('errorTitle'),
+      errorDesc: $('errorDesc'),
+      resetFiltersBtn: $('resetFiltersBtn'),
+      pageSizeSelect: $('pageSizeSelect'),
+      pageRangeText: $('pageRangeText'),
+      currentPageIndicator: $('currentPageIndicator'),
+      firstPageBtn: $('firstPageBtn'),
+      prevPageBtn: $('prevPageBtn'),
+      nextPageBtn: $('nextPageBtn'),
+      lastPageBtn: $('lastPageBtn'),
+      topPageSizeSelect: $('topPageSizeSelect'),
+      topPageRangeText: $('topPageRangeText'),
+      topCurrentPageIndicator: $('topCurrentPageIndicator'),
+      topFirstPageBtn: $('topFirstPageBtn'),
+      topPrevPageBtn: $('topPrevPageBtn'),
+      topNextPageBtn: $('topNextPageBtn'),
+      topLastPageBtn: $('topLastPageBtn'),
+      refreshBtn: $('refreshBtn'),
+      refreshIcon: $('refreshIcon'),
+      colToggleBtn: $('colToggleBtn'),
+      colToggleMenu: $('colToggleMenu'),
+      colCheckboxes: $('colCheckboxes'),
+      exportMenuBtn: $('exportMenuBtn'),
+      exportMenu: $('exportMenu'),
+      exportCsvBtn: $('exportCsvBtn'),
+      exportJsonBtn: $('exportJsonBtn'),
+      copyTableBtn: $('copyTableBtn'),
+      sheetLink: $('sheetLink'),
+      fontNormalBtn: $('fontNormalBtn'),
+      fontLargeBtn: $('fontLargeBtn'),
+      fontXLargeBtn: $('fontXLargeBtn')
     };
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
       loadFontSizePreference();
       renderTabButtons();
+      updateActiveTabStatus();
       bindEvents();
       fetchAllTabsData();
     });
 
-    // Font size switcher
+    // Font size switcher（切換 html 的 class，全頁以 rem 等比縮放）
     function setFontSize(size) {
+      if (!['normal', 'large', 'xlarge'].includes(size)) size = 'large';
       state.fontSize = size;
-      localStorage.setItem('gsheet_font_size', size);
-      elements.appBody.classList.remove('font-size-large', 'font-size-xlarge');
-
-      elements.fontNormalBtn.className = 'px-2 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition';
-      elements.fontLargeBtn.className = 'px-2 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition';
-      elements.fontXLargeBtn.className = 'px-2 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition';
-
-      if (size === 'large') {
-        elements.appBody.classList.add('font-size-large');
-        elements.fontLargeBtn.className = 'px-2 py-1 rounded-lg bg-white shadow-sm text-blue-700 font-black transition';
-      } else if (size === 'xlarge') {
-        elements.appBody.classList.add('font-size-xlarge');
-        elements.fontXLargeBtn.className = 'px-2 py-1 rounded-lg bg-white shadow-sm text-blue-700 font-black transition';
-      } else {
-        elements.fontNormalBtn.className = 'px-2 py-1 rounded-lg bg-white shadow-sm text-blue-700 font-black transition';
-      }
+      try { localStorage.setItem('gsheet_font_size', size); } catch (e) {}
+      document.documentElement.classList.remove('fs-normal', 'fs-large', 'fs-xlarge');
+      document.documentElement.classList.add('fs-' + size);
+      elements.fontNormalBtn.classList.toggle('is-active', size === 'normal');
+      elements.fontLargeBtn.classList.toggle('is-active', size === 'large');
+      elements.fontXLargeBtn.classList.toggle('is-active', size === 'xlarge');
     }
 
     function loadFontSizePreference() {
-      const saved = localStorage.getItem('gsheet_font_size') || 'large';
+      let saved = 'large';
+      try { saved = localStorage.getItem('gsheet_font_size') || 'large'; } catch (e) {}
       setFontSize(saved);
     }
 
@@ -631,34 +648,40 @@
       const container = elements.tabButtonsContainer;
       container.innerHTML = '';
 
-      // All Tabs button
       const allBtn = document.createElement('button');
-      allBtn.textContent = '📚 全部分頁 (4 萬筆)';
+      allBtn.textContent = '全部';
+      allBtn.title = `全部分頁 (${(state.allAggregatedRows.length || 42972).toLocaleString()} 筆)`;
       allBtn.dataset.tab = '_all_';
-      allBtn.className = `px-3 py-1.5 text-xs sm:text-sm font-black rounded-xl transition-all ${
-        state.selectedTab === '_all_'
-          ? 'bg-amber-400 text-slate-950 shadow-md scale-105'
-          : 'bg-white/20 text-white hover:bg-white/35 hover:scale-105'
-      }`;
+      allBtn.className = 'all' + (state.selectedTab === '_all_' ? ' is-active' : '');
       allBtn.addEventListener('click', () => switchTab('_all_'));
       container.appendChild(allBtn);
 
-      // Letter Tabs
       state.tabs.forEach(tab => {
         const btn = document.createElement('button');
         const count = state.tabDataMap.has(tab.name) ? state.tabDataMap.get(tab.name).rows.length : (tab.rowsCount || '');
         btn.textContent = tab.name;
-        btn.title = `分頁 ${tab.name} (${count} 筆)`;
+        btn.title = `分頁 ${tab.name}（${count.toLocaleString()} 筆）`;
         btn.dataset.tab = tab.name;
-        btn.className = `px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-black rounded-xl transition-all ${
-          state.selectedTab === tab.name
-            ? 'bg-amber-400 text-slate-950 shadow-md scale-110'
-            : 'bg-white/15 text-white hover:bg-white/30 hover:scale-105'
-        }`;
-
+        if (state.selectedTab === tab.name) btn.className = 'is-active';
         btn.addEventListener('click', () => switchTab(tab.name));
         container.appendChild(btn);
       });
+    }
+
+    function updateActiveTabStatus() {
+      const tabName = state.selectedTab;
+      if (tabName === '_all_') {
+        const total = state.allAggregatedRows.length || 42972;
+        elements.activeTabStatus.innerText = `全部分頁・${total.toLocaleString()} 筆`;
+        elements.currentTabStatLabel.innerText = '全庫總筆數';
+        elements.statCurrentTabRows.innerText = state.allAggregatedRows.length.toLocaleString();
+      } else {
+        const tabInfo = state.tabs.find(t => t.name === tabName);
+        const count = state.tabDataMap.has(tabName) ? state.tabDataMap.get(tabName).rows.length : (tabInfo ? tabInfo.rowsCount : 0);
+        elements.activeTabStatus.innerText = `分頁 ${tabName}・${count.toLocaleString()} 筆`;
+        elements.currentTabStatLabel.innerText = `分頁 ${tabName} 筆數`;
+        elements.statCurrentTabRows.innerText = count.toLocaleString();
+      }
     }
 
     // Switch Tab Action
@@ -666,19 +689,7 @@
       state.selectedTab = tabName;
       renderTabButtons();
       state.currentPage = 1;
-
-      if (tabName === '_all_') {
-        elements.activeTabStatus.innerText = '正在檢視: 全部分頁 (全庫 42,972 筆)';
-        elements.currentTabStatLabel.innerText = '全庫總筆數';
-        elements.statCurrentTabRows.innerText = state.allAggregatedRows.length.toLocaleString();
-      } else {
-        const tabInfo = state.tabs.find(t => t.name === tabName);
-        const count = state.tabDataMap.has(tabName) ? state.tabDataMap.get(tabName).rows.length : (tabInfo ? tabInfo.rowsCount : 0);
-        elements.activeTabStatus.innerText = `正在檢視: 分頁 [${tabName}] (${count.toLocaleString()} 筆)`;
-        elements.currentTabStatLabel.innerText = `分頁 [${tabName}] 筆數`;
-        elements.statCurrentTabRows.innerText = count.toLocaleString();
-      }
-
+      updateActiveTabStatus();
       applyFilters();
     }
 
@@ -750,8 +761,8 @@
         headers.forEach((h, idx) => {
           const cell = r.c ? r.c[colIndexes[idx]] : null;
           if (cell) {
-            rowObj[h] = cell.f !== undefined && cell.f !== null 
-              ? String(cell.f).trim() 
+            rowObj[h] = cell.f !== undefined && cell.f !== null
+              ? String(cell.f).trim()
               : (cell.v !== undefined && cell.v !== null ? String(cell.v).trim() : '');
           } else {
             rowObj[h] = '';
@@ -819,7 +830,7 @@
 
       elements.loadProgressBarContainer.classList.remove('hidden');
       elements.loadProgressBar.style.width = '5%';
-      elements.loadingText.innerText = '正在連線並載入全 26 個分頁 (A ~ Z)...';
+      elements.loadingText.innerText = '正在載入 26 個分頁資料…';
 
       state.tabDataMap.clear();
       state.allAggregatedRows = [];
@@ -827,6 +838,7 @@
 
       const BATCH_SIZE = 6;
       const totalTabs = state.tabs.length;
+      let failed = 0;
 
       for (let i = 0; i < totalTabs; i += BATCH_SIZE) {
         const batch = state.tabs.slice(i, i + BATCH_SIZE);
@@ -834,6 +846,7 @@
 
         batchResults.forEach(res => {
           state.loadedTabsCount++;
+          if (res.error) failed++;
           if (res.headers && res.headers.length > 0) {
             state.rawHeaders = res.headers;
           }
@@ -845,6 +858,7 @@
         elements.loadProgressBar.style.width = `${progressPercent}%`;
         elements.statTabsLoaded.innerText = `${state.loadedTabsCount} / ${totalTabs}`;
         elements.statTotalRows.innerText = state.allAggregatedRows.length.toLocaleString();
+        elements.loadingText.innerText = `正在載入分頁資料… ${state.loadedTabsCount} / ${totalTabs}`;
 
         // Update display as data streams in
         if (state.loadedTabsCount <= BATCH_SIZE || state.loadedTabsCount === totalTabs) {
@@ -854,18 +868,32 @@
       }
 
       setLoadingState(false);
-      elements.loadProgressBarContainer.classList.add('hidden');
-      elements.tabCountBadge.innerText = `全 26 個分頁已就緒 (${state.allAggregatedRows.length.toLocaleString()} 筆)`;
-      setStatus('connected', '已連線 (全 26 分頁)');
+      setTimeout(() => elements.loadProgressBarContainer.classList.add('hidden'), 400);
+
+      if (failed === totalTabs) {
+        setStatus('error', '連線失敗');
+        elements.tableViewWrapper.classList.add('hidden');
+        elements.cardViewWrapper.classList.add('hidden');
+        elements.tableEmpty.classList.add('hidden');
+        elements.tableError.classList.remove('hidden');
+        showToast('無法載入試算表資料', 'error');
+        return;
+      }
+
+      const total = state.allAggregatedRows.length.toLocaleString();
+      elements.tabCountBadge.innerText = `${total} 筆`;
+      elements.heroTotal.innerText = total;
+      setStatus('connected', failed ? `已同步（${failed} 個分頁失敗）` : '已同步');
 
       populateFilterColumnSelect();
       renderColumnCheckboxes();
       renderTabButtons();
+      updateActiveTabStatus();
       applyFilters();
 
       const now = new Date();
-      elements.lastUpdated.innerText = `最後同步: ${now.toLocaleTimeString('zh-TW', { hour12: false })}`;
-      showToast(`成功同步全庫 26 個分頁，共 ${state.allAggregatedRows.length.toLocaleString()} 筆譯名！`, 'success');
+      elements.lastUpdated.innerText = now.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      showToast(failed ? `已載入 ${total} 筆，但有 ${failed} 個分頁失敗` : `已同步 26 個分頁，共 ${total} 筆`, failed ? 'warning' : 'success');
     }
 
     // Apply Filter & Search Logic across Current Tab or All Tabs
@@ -874,7 +902,6 @@
       const targetCol = state.targetColumn;
       const selectedTab = state.selectedTab;
 
-      // Select row source
       let sourceRows = [];
       if (selectedTab === '_all_') {
         sourceRows = state.allAggregatedRows;
@@ -890,19 +917,16 @@
         if (keywords.length > 0) {
           if (targetCol === '_all_') {
             const fullRowText = Object.values(row).join(' ').toLowerCase();
-            const matchesAll = keywords.every(kw => fullRowText.includes(kw));
-            if (!matchesAll) return false;
+            if (!keywords.every(kw => fullRowText.includes(kw))) return false;
           } else {
             const colText = (row[targetCol] || '').toLowerCase();
-            const matchesAll = keywords.every(kw => colText.includes(kw));
-            if (!matchesAll) return false;
+            if (!keywords.every(kw => colText.includes(kw))) return false;
           }
         }
 
         return true;
       });
 
-      // Sorting
       if (state.sortColumn) {
         const col = state.sortColumn;
         const dir = state.sortDirection === 'asc' ? 1 : -1;
@@ -920,7 +944,6 @@
         });
       }
 
-      // Update counters
       elements.statFilteredRows.innerText = state.filteredRows.length.toLocaleString();
       elements.statCurrentTabRows.innerText = (selectedTab === '_all_' ? state.allAggregatedRows.length : sourceRows.length).toLocaleString();
       elements.statTotalRows.innerText = state.allAggregatedRows.length.toLocaleString();
@@ -934,30 +957,16 @@
 
     // Render Table Header
     function renderHeader() {
-      elements.tableHeaderRow.innerHTML = `
-        <th class="py-4 px-4 w-16 text-center text-slate-400 font-mono font-black text-sm">#</th>
-        <th class="py-4 px-4 w-20 text-center text-slate-600 text-xs font-black">分頁</th>
-      `;
+      elements.tableHeaderRow.innerHTML = '<th class="num">#</th><th class="tab">分頁</th>';
 
       state.rawHeaders.forEach(col => {
         if (!state.visibleColumns.has(col)) return;
 
         const th = document.createElement('th');
-        th.className = 'py-4 px-6 select-none cursor-pointer hover:bg-slate-200/90 transition group text-slate-900 font-black text-base tracking-wide';
-        
-        let sortIconHtml = '<i class="fa-solid fa-sort text-slate-300 group-hover:text-slate-600 ml-2 text-sm"></i>';
-        if (state.sortColumn === col) {
-          sortIconHtml = state.sortDirection === 'asc'
-            ? '<i class="fa-solid fa-arrow-up-short-wide text-blue-600 ml-2 text-base"></i>'
-            : '<i class="fa-solid fa-arrow-down-wide-short text-blue-600 ml-2 text-base"></i>';
-        }
-
-        th.innerHTML = `
-          <div class="flex items-center justify-between gap-2">
-            <span>${escapeHtml(col)}</span>
-            ${sortIconHtml}
-          </div>
-        `;
+        const sorted = state.sortColumn === col;
+        th.className = 'sortable' + (sorted ? ' sorted' : '');
+        const icon = !sorted ? 'fa-sort' : (state.sortDirection === 'asc' ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-wide-short');
+        th.innerHTML = `${escapeHtml(col)}<i class="fa-solid ${icon} sort"></i>`;
 
         th.addEventListener('click', () => {
           if (state.sortColumn === col) {
@@ -1003,6 +1012,21 @@
       }
     }
 
+    // 依欄位判斷顯示樣式
+    function columnKind(col, colIdx) {
+      if (colIdx === 0 || col.includes('英文')) return 'eng';
+      if (colIdx === 1 || col.includes('中文')) return 'chi';
+      if (colIdx === 2 || col.includes('四角')) return 'code';
+      return 'other';
+    }
+
+    function renderCell(kind, rawVal, highlightedVal) {
+      if (kind === 'eng') return `<span class="cell-eng">${highlightedVal || '<span class="cell-muted">—</span>'}</span>`;
+      if (kind === 'chi') return `<span class="cell-chi">${highlightedVal || '<span class="cell-muted">尚無譯名</span>'}</span>`;
+      if (kind === 'code') return rawVal ? `<span class="code">${highlightedVal}</span>` : '<span class="cell-muted">—</span>';
+      return highlightedVal || '<span class="cell-muted">—</span>';
+    }
+
     // Render Table Rows
     function renderTableRows() {
       elements.tableBody.innerHTML = '';
@@ -1013,62 +1037,25 @@
 
       const q = state.searchQuery.trim();
       const keywords = q ? q.split(/\s+/).filter(Boolean) : [];
+      const frag = document.createDocumentFragment();
 
       pageRows.forEach((row, index) => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-blue-50/80 transition cursor-pointer border-b border-slate-200/80 group';
-
         const rowNumber = row._originalIndex || (startIdx + index + 1);
-        let rowHtml = `
-          <td class="py-4 px-4 text-center text-sm text-slate-400 font-mono font-bold">${rowNumber}</td>
-          <td class="py-4 px-4 text-center">
-            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-100 text-blue-800 text-xs font-black">${row._tab || 'A'}</span>
-          </td>
-        `;
+        let rowHtml = `<td class="num">${rowNumber}</td><td class="tab"><span class="tab-chip">${escapeHtml(row._tab || 'A')}</span></td>`;
 
         state.rawHeaders.forEach((col, colIdx) => {
           if (!state.visibleColumns.has(col)) return;
-
           const rawVal = row[col] !== undefined ? String(row[col]) : '';
-          const highlightedVal = highlightKeywords(rawVal, keywords);
-
-          if (colIdx === 0 || col.includes('英文')) {
-            rowHtml += `
-              <td class="py-4.5 px-6 whitespace-nowrap">
-                <span class="text-xl font-extrabold text-blue-700 tracking-tight font-sans">${highlightedVal || '-'}</span>
-              </td>
-            `;
-          } else if (colIdx === 1 || col.includes('中文')) {
-            rowHtml += `
-              <td class="py-4.5 px-6 whitespace-nowrap">
-                <span class="inline-block bg-slate-100 group-hover:bg-white text-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-300/80 text-lg font-black tracking-wide">
-                  ${highlightedVal || '<span class="text-slate-300 font-normal text-sm">尚未翻譯</span>'}
-                </span>
-              </td>
-            `;
-          } else if (colIdx === 2 || col.includes('四角')) {
-            rowHtml += `
-              <td class="py-4.5 px-6 whitespace-nowrap">
-                ${rawVal ? `<span class="inline-flex items-center px-3 py-1 rounded-lg text-base font-black font-mono bg-purple-50 text-purple-800 border border-purple-200">#${highlightedVal}</span>` : '<span class="text-slate-300 text-sm font-mono">-</span>'}
-              </td>
-            `;
-          } else {
-            rowHtml += `
-              <td class="py-4.5 px-6 text-base font-semibold text-slate-700 whitespace-nowrap">
-                ${highlightedVal || '<span class="text-slate-300">-</span>'}
-              </td>
-            `;
-          }
+          rowHtml += `<td>${renderCell(columnKind(col, colIdx), rawVal, highlightKeywords(rawVal, keywords))}</td>`;
         });
 
         tr.innerHTML = rowHtml;
-
-        tr.addEventListener('click', () => {
-          openDetailModal(row, rowNumber);
-        });
-
-        elements.tableBody.appendChild(tr);
+        tr.addEventListener('click', () => openDetailModal(row, rowNumber));
+        frag.appendChild(tr);
       });
+
+      elements.tableBody.appendChild(frag);
     }
 
     // Render Card Grid View
@@ -1085,52 +1072,29 @@
       const engCol = state.rawHeaders[0] || '英文名稱';
       const chiCol = state.rawHeaders[1] || '中文名稱';
       const codeCol = state.rawHeaders[2] || '四角號碼';
+      const frag = document.createDocumentFragment();
 
       pageRows.forEach((row, index) => {
         const rowNumber = row._originalIndex || (startIdx + index + 1);
         const engVal = row[engCol] || '';
         const chiVal = row[chiCol] || '';
         const codeVal = row[codeCol] || '';
-        const tabName = row._tab || 'A';
 
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-3xl p-6 shadow-card border border-slate-200 hover:shadow-card-hover hover:border-blue-400 transition-all cursor-pointer flex flex-col justify-between group space-y-5';
-
+        card.className = 'card';
         card.innerHTML = `
-          <div class="space-y-3.5">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-mono font-black text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">#${rowNumber}</span>
-                <span class="text-xs font-black text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">分頁 ${tabName}</span>
-              </div>
-              ${codeVal ? `<span class="text-sm font-mono font-black text-purple-700 bg-purple-50 px-3 py-1 rounded-xl border border-purple-200">四角: ${codeVal}</span>` : ''}
-            </div>
-            <div>
-              <div class="text-xs font-black text-slate-400 uppercase tracking-wider">外文原名</div>
-              <h3 class="text-2xl font-black text-blue-700 tracking-tight leading-tight group-hover:text-blue-800 mt-0.5">
-                ${highlightKeywords(engVal, keywords) || '無'}
-              </h3>
-            </div>
-            <div class="pt-3 border-t border-slate-100">
-              <div class="text-xs font-black text-slate-400 uppercase tracking-wider">中文譯名</div>
-              <div class="text-xl font-black text-slate-900 mt-1">
-                ${chiVal ? highlightKeywords(chiVal, keywords) : '<span class="text-sm font-normal text-slate-400 italic">尚無譯名</span>'}
-              </div>
-            </div>
+          <div class="card-top">
+            <span class="card-meta"><span class="tab-chip">${escapeHtml(row._tab || 'A')}</span>#${rowNumber}</span>
+            ${codeVal ? `<span class="code">${highlightKeywords(codeVal, keywords)}</span>` : ''}
           </div>
-
-          <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-sm text-slate-400 group-hover:text-blue-600 font-black transition">
-            <span>點擊查看完整明細</span>
-            <i class="fa-solid fa-arrow-right text-sm transform group-hover:translate-x-1.5 transition"></i>
-          </div>
+          <div class="cell-chi">${chiVal ? highlightKeywords(chiVal, keywords) : '<span class="cell-muted">尚無譯名</span>'}</div>
+          <div class="cell-eng">${highlightKeywords(engVal, keywords) || '—'}</div>
         `;
-
-        card.addEventListener('click', () => {
-          openDetailModal(row, rowNumber);
-        });
-
-        elements.cardGrid.appendChild(card);
+        card.addEventListener('click', () => openDetailModal(row, rowNumber));
+        frag.appendChild(card);
       });
+
+      elements.cardGrid.appendChild(frag);
     }
 
     // Render Pagination
@@ -1143,38 +1107,30 @@
       const startIdx = total === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1;
       const endIdx = Math.min(state.currentPage * state.pageSize, total);
 
-      const rangeText = `顯示第 ${startIdx} - ${endIdx} 筆 / 共 ${total.toLocaleString()} 筆`;
-      const pageIndicatorText = `第 ${state.currentPage} / ${totalPages} 頁`;
+      const rangeText = `${startIdx.toLocaleString()} – ${endIdx.toLocaleString()} / 共 ${total.toLocaleString()} 筆`;
+      const pageIndicatorText = `${state.currentPage.toLocaleString()} / ${totalPages.toLocaleString()} 頁`;
 
-      // Update bottom controls
-      elements.pageRangeText.innerText = rangeText;
-      elements.currentPageIndicator.innerText = pageIndicatorText;
-      elements.firstPageBtn.disabled = state.currentPage <= 1;
-      elements.prevPageBtn.disabled = state.currentPage <= 1;
-      elements.nextPageBtn.disabled = state.currentPage >= totalPages;
-      elements.lastPageBtn.disabled = state.currentPage >= totalPages;
-      elements.pageSizeSelect.value = String(state.pageSize);
-
-      // Update top controls
-      if (elements.topPageRangeText) elements.topPageRangeText.innerText = rangeText;
-      if (elements.topCurrentPageIndicator) elements.topCurrentPageIndicator.innerText = pageIndicatorText;
-      if (elements.topFirstPageBtn) elements.topFirstPageBtn.disabled = state.currentPage <= 1;
-      if (elements.topPrevPageBtn) elements.topPrevPageBtn.disabled = state.currentPage <= 1;
-      if (elements.topNextPageBtn) elements.topNextPageBtn.disabled = state.currentPage >= totalPages;
-      if (elements.topLastPageBtn) elements.topLastPageBtn.disabled = state.currentPage >= totalPages;
-      if (elements.topPageSizeSelect) elements.topPageSizeSelect.value = String(state.pageSize);
+      [['', elements.pageRangeText, elements.currentPageIndicator, elements.firstPageBtn, elements.prevPageBtn, elements.nextPageBtn, elements.lastPageBtn, elements.pageSizeSelect],
+       ['top', elements.topPageRangeText, elements.topCurrentPageIndicator, elements.topFirstPageBtn, elements.topPrevPageBtn, elements.topNextPageBtn, elements.topLastPageBtn, elements.topPageSizeSelect]]
+        .forEach(([, range, page, first, prev, next, last, size]) => {
+          range.innerText = rangeText;
+          page.innerText = pageIndicatorText;
+          first.disabled = prev.disabled = state.currentPage <= 1;
+          next.disabled = last.disabled = state.currentPage >= totalPages;
+          size.value = String(state.pageSize);
+        });
     }
 
     // Populate Filter Column Select
     function populateFilterColumnSelect() {
       const select = elements.filterColumnSelect;
       const currentVal = state.targetColumn;
-      select.innerHTML = '<option value="_all_">🔍 所有欄位搜尋</option>';
+      select.innerHTML = '<option value="_all_">全部欄位</option>';
 
       state.rawHeaders.forEach(col => {
         const opt = document.createElement('option');
         opt.value = col;
-        opt.textContent = `僅查: ${col}`;
+        opt.textContent = `只查${col}`;
         select.appendChild(opt);
       });
 
@@ -1190,19 +1146,17 @@
 
       state.rawHeaders.forEach(col => {
         const label = document.createElement('label');
-        label.className = 'flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-xl cursor-pointer text-sm font-bold text-slate-800 select-none';
-
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.checked = state.visibleColumns.has(col);
-        checkbox.className = 'rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4';
+        checkbox.addEventListener('click', e => e.stopPropagation());
         checkbox.addEventListener('change', () => {
           if (checkbox.checked) {
             state.visibleColumns.add(col);
           } else {
             if (state.visibleColumns.size <= 1) {
               checkbox.checked = true;
-              showToast('請至少保留一個欄位顯示', 'warning');
+              showToast('請至少保留一個欄位', 'warning');
               return;
             }
             state.visibleColumns.delete(col);
@@ -1212,13 +1166,20 @@
         });
 
         const span = document.createElement('span');
-        span.className = 'truncate';
         span.textContent = col;
 
         label.appendChild(checkbox);
         label.appendChild(span);
+        label.addEventListener('click', e => e.stopPropagation());
         container.appendChild(label);
       });
+    }
+
+    function setViewMode(mode) {
+      state.viewMode = mode;
+      elements.viewTableBtn.classList.toggle('is-active', mode === 'table');
+      elements.viewCardBtn.classList.toggle('is-active', mode === 'card');
+      renderDisplayData();
     }
 
     // Bind UI Events
@@ -1227,7 +1188,6 @@
       elements.fontLargeBtn.addEventListener('click', () => setFontSize('large'));
       elements.fontXLargeBtn.addEventListener('click', () => setFontSize('xlarge'));
 
-      // Search
       elements.globalSearch.addEventListener('input', (e) => {
         state.searchQuery = e.target.value;
         elements.clearSearchBtn.classList.toggle('hidden', !state.searchQuery);
@@ -1250,26 +1210,9 @@
         applyFilters();
       });
 
-      // View Mode
-      elements.viewTableBtn.addEventListener('click', () => {
-        state.viewMode = 'table';
-        elements.viewTableBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-black transition bg-white text-blue-700 shadow-sm';
-        elements.viewCardBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900';
-        elements.tableViewWrapper.classList.remove('hidden');
-        elements.cardViewWrapper.classList.add('hidden');
-        renderDisplayData();
-      });
+      elements.viewTableBtn.addEventListener('click', () => setViewMode('table'));
+      elements.viewCardBtn.addEventListener('click', () => setViewMode('card'));
 
-      elements.viewCardBtn.addEventListener('click', () => {
-        state.viewMode = 'card';
-        elements.viewCardBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-black transition bg-white text-blue-700 shadow-sm';
-        elements.viewTableBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900';
-        elements.cardViewWrapper.classList.remove('hidden');
-        elements.tableViewWrapper.classList.add('hidden');
-        renderDisplayData();
-      });
-
-      // Reset
       elements.resetFiltersBtn.addEventListener('click', () => {
         elements.globalSearch.value = '';
         state.searchQuery = '';
@@ -1278,6 +1221,7 @@
         elements.filterColumnSelect.value = '_all_';
         state.selectedTab = '_all_';
         renderTabButtons();
+        updateActiveTabStatus();
         state.sortColumn = null;
         state.sortDirection = 'asc';
         state.currentPage = 1;
@@ -1285,55 +1229,34 @@
         renderHeader();
       });
 
-      // Page size (Bottom & Top synced)
-      elements.pageSizeSelect.addEventListener('change', (e) => {
+      const onPageSize = (e) => {
         state.pageSize = parseInt(e.target.value, 10);
         state.currentPage = 1;
         renderDisplayData();
         renderPagination();
-      });
+      };
+      elements.pageSizeSelect.addEventListener('change', onPageSize);
+      elements.topPageSizeSelect.addEventListener('change', onPageSize);
 
-      if (elements.topPageSizeSelect) {
-        elements.topPageSizeSelect.addEventListener('change', (e) => {
-          state.pageSize = parseInt(e.target.value, 10);
-          state.currentPage = 1;
-          renderDisplayData();
-          renderPagination();
+      const totalPages = () => Math.ceil(state.filteredRows.length / state.pageSize) || 1;
+      const goTo = (page) => {
+        page = Math.max(1, Math.min(totalPages(), page));
+        if (page === state.currentPage) return;
+        state.currentPage = page;
+        renderDisplayData();
+        renderPagination();
+      };
+      [[elements.firstPageBtn, elements.topFirstPageBtn, () => 1],
+       [elements.prevPageBtn, elements.topPrevPageBtn, () => state.currentPage - 1],
+       [elements.nextPageBtn, elements.topNextPageBtn, () => state.currentPage + 1],
+       [elements.lastPageBtn, elements.topLastPageBtn, () => totalPages()]]
+        .forEach(([bottom, top, target]) => {
+          bottom.addEventListener('click', () => goTo(target()));
+          top.addEventListener('click', () => goTo(target()));
         });
-      }
 
-      // Pagination helper
-      const goToFirstPage = () => {
-        if (state.currentPage > 1) { state.currentPage = 1; renderDisplayData(); renderPagination(); }
-      };
-      const goToPrevPage = () => {
-        if (state.currentPage > 1) { state.currentPage--; renderDisplayData(); renderPagination(); }
-      };
-      const goToNextPage = () => {
-        const totalPages = Math.ceil(state.filteredRows.length / state.pageSize) || 1;
-        if (state.currentPage < totalPages) { state.currentPage++; renderDisplayData(); renderPagination(); }
-      };
-      const goToLastPage = () => {
-        const totalPages = Math.ceil(state.filteredRows.length / state.pageSize) || 1;
-        if (state.currentPage < totalPages) { state.currentPage = totalPages; renderDisplayData(); renderPagination(); }
-      };
-
-      // Bottom pagination buttons
-      elements.firstPageBtn.addEventListener('click', goToFirstPage);
-      elements.prevPageBtn.addEventListener('click', goToPrevPage);
-      elements.nextPageBtn.addEventListener('click', goToNextPage);
-      elements.lastPageBtn.addEventListener('click', goToLastPage);
-
-      // Top pagination buttons
-      if (elements.topFirstPageBtn) elements.topFirstPageBtn.addEventListener('click', goToFirstPage);
-      if (elements.topPrevPageBtn) elements.topPrevPageBtn.addEventListener('click', goToPrevPage);
-      if (elements.topNextPageBtn) elements.topNextPageBtn.addEventListener('click', goToNextPage);
-      if (elements.topLastPageBtn) elements.topLastPageBtn.addEventListener('click', goToLastPage);
-
-      // Refresh
       elements.refreshBtn.addEventListener('click', fetchAllTabsData);
 
-      // Columns dropdown
       elements.colToggleBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         elements.colToggleMenu.classList.toggle('hidden');
@@ -1351,7 +1274,14 @@
         elements.exportMenu.classList.add('hidden');
       });
 
-      // Export
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDetailModal();
+      });
+
+      document.getElementById('detailModal').addEventListener('click', (e) => {
+        if (e.target.id === 'detailModal') closeDetailModal();
+      });
+
       elements.exportCsvBtn.addEventListener('click', exportToCsv);
       elements.exportJsonBtn.addEventListener('click', exportToJson);
       elements.copyTableBtn.addEventListener('click', copyFilteredData);
@@ -1364,7 +1294,7 @@
 
       keywords.forEach(kw => {
         if (!kw) return;
-        const escapedKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedKw = escapeHtml(kw).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(`(${escapedKw})`, 'gi');
         safeText = safeText.replace(regex, '<mark class="highlight">$1</mark>');
       });
@@ -1391,7 +1321,7 @@
         elements.tableLoading.classList.remove('hidden');
         elements.tableError.classList.add('hidden');
         elements.tableEmpty.classList.add('hidden');
-        setStatus('loading', '正在讀取分頁資料...');
+        setStatus('loading', '同步中…');
       } else {
         elements.refreshIcon.classList.remove('fa-spin');
         elements.tableLoading.classList.add('hidden');
@@ -1401,104 +1331,81 @@
     // Set Status
     function setStatus(type, message) {
       elements.statusText.innerText = message;
-      elements.statusDot.className = 'w-2.5 h-2.5 rounded-full';
-
-      if (type === 'connected') {
-        elements.statusDot.classList.add('bg-emerald-500', 'shadow-sm', 'shadow-emerald-500/50');
-      } else if (type === 'loading') {
-        elements.statusDot.classList.add('bg-amber-400', 'animate-pulse');
-      } else {
-        elements.statusDot.classList.add('bg-rose-500');
-      }
+      elements.statusDot.dataset.state = type;
     }
 
     // Detail Modal
     function openDetailModal(row, rowNumber) {
-      document.getElementById('detailModalTitle').innerText = row[state.rawHeaders[0]] || '譯名詳細資料';
-      document.getElementById('detailModalSubtitle').innerText = `分頁 [${row._tab || 'A'}] • 第 ${rowNumber} 筆記錄`;
+      const tab = row._tab || 'A';
+      $('detailModalTitle').innerText = row[state.rawHeaders[0]] || '譯名詳細資料';
+      $('detailModalSubtitle').innerText = `分頁 ${tab}・第 ${rowNumber} 筆`;
 
-      const body = document.getElementById('detailModalBody');
+      const body = $('detailModalBody');
       body.innerHTML = '';
 
-      let textSummary = `[分頁 ${row._tab || 'A'} - 第 ${rowNumber} 筆資料]\n`;
+      let textSummary = `[分頁 ${tab} - 第 ${rowNumber} 筆資料]\n`;
 
-      const tabItem = document.createElement('div');
-      tabItem.className = 'bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-1';
-      tabItem.innerHTML = `
-        <div class="text-xs font-black text-blue-600 uppercase tracking-wider">所屬工作表分頁</div>
-        <div class="text-xl font-black text-blue-900">分頁 [${row._tab || 'A'}]</div>
-      `;
-      body.appendChild(tabItem);
-
-      state.rawHeaders.forEach(col => {
+      state.rawHeaders.forEach((col, colIdx) => {
         const val = row[col] !== undefined ? String(row[col]) : '';
         textSummary += `${col}: ${val}\n`;
+        const kind = columnKind(col, colIdx);
 
         const item = document.createElement('div');
-        item.className = 'bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1.5';
-        item.innerHTML = `
-          <div class="text-xs font-black text-slate-400 uppercase tracking-wider">${escapeHtml(col)}</div>
-          <div class="text-xl font-black text-slate-900 break-words whitespace-pre-wrap">${val ? escapeHtml(val) : '<span class="text-slate-300 font-normal italic text-sm">無資料</span>'}</div>
-        `;
+        item.className = 'field';
+        const valueHtml = !val ? '<span class="cell-muted">無資料</span>'
+          : kind === 'code' ? `<span class="code">${escapeHtml(val)}</span>` : escapeHtml(val);
+        item.innerHTML = `<span class="k">${escapeHtml(col)}</span><span class="v${kind === 'chi' ? ' chi' : ''}">${valueHtml}</span>`;
         body.appendChild(item);
       });
 
-      document.getElementById('copyDetailBtn').onclick = () => {
-        navigator.clipboard.writeText(textSummary).then(() => {
-          showToast('已複製明細到剪貼簿', 'success');
-        });
+      $('copyDetailBtn').onclick = () => {
+        navigator.clipboard.writeText(textSummary).then(() => showToast('已複製這筆資料', 'success'));
       };
 
-      document.getElementById('detailModal').classList.remove('hidden');
+      $('detailModal').classList.remove('hidden');
     }
 
     function closeDetailModal() {
-      document.getElementById('detailModal').classList.add('hidden');
+      $('detailModal').classList.add('hidden');
+    }
+
+    function exportRows() {
+      return state.filteredRows.map(row => {
+        const obj = { '分頁': row._tab || '' };
+        state.rawHeaders.forEach(h => { if (state.visibleColumns.has(h)) obj[h] = row[h] || ''; });
+        return obj;
+      });
+    }
+
+    function download(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     // Export CSV
     function exportToCsv() {
-      if (state.filteredRows.length === 0) return showToast('無資料可匯出', 'warning');
-      const visibleHeaders = ['分頁', ...state.rawHeaders.filter(h => state.visibleColumns.has(h))];
-      const csvData = state.filteredRows.map(row => {
-        const obj = { '分頁': row._tab || '' };
-        state.rawHeaders.forEach(h => { if (state.visibleColumns.has(h)) obj[h] = row[h] || ''; });
-        return obj;
-      });
-      const csvString = Papa.unparse(csvData);
-      const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `譯名查詢_分頁${state.selectedTab}_${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      showToast('已匯出 CSV 檔案', 'success');
+      if (state.filteredRows.length === 0) return showToast('沒有資料可匯出', 'warning');
+      const csvString = Papa.unparse(exportRows());
+      download(new Blob(['﻿' + csvString], { type: 'text/csv;charset=utf-8;' }), `譯名查詢_分頁${state.selectedTab}_${new Date().toISOString().slice(0, 10)}.csv`);
+      showToast('已匯出 CSV', 'success');
     }
 
     // Export JSON
     function exportToJson() {
-      if (state.filteredRows.length === 0) return showToast('無資料可匯出', 'warning');
-      const jsonData = state.filteredRows.map(row => {
-        const obj = { '分頁': row._tab || '' };
-        state.rawHeaders.forEach(h => { if (state.visibleColumns.has(h)) obj[h] = row[h] || ''; });
-        return obj;
-      });
-      const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `譯名查詢_分頁${state.selectedTab}_${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      showToast('已匯出 JSON 檔案', 'success');
+      if (state.filteredRows.length === 0) return showToast('沒有資料可匯出', 'warning');
+      download(new Blob([JSON.stringify(exportRows(), null, 2)], { type: 'application/json' }), `譯名查詢_分頁${state.selectedTab}_${new Date().toISOString().slice(0, 10)}.json`);
+      showToast('已匯出 JSON', 'success');
     }
 
     // Copy to Clipboard
     function copyFilteredData() {
-      if (state.filteredRows.length === 0) return showToast('無資料可複製', 'warning');
+      if (state.filteredRows.length === 0) return showToast('沒有資料可複製', 'warning');
       const visibleHeaders = ['分頁', ...state.rawHeaders.filter(h => state.visibleColumns.has(h))];
       let text = visibleHeaders.join('\t') + '\n';
       state.filteredRows.forEach(row => {
@@ -1507,30 +1414,22 @@
         text += vals.join('\t') + '\n';
       });
       navigator.clipboard.writeText(text).then(() => {
-        showToast(`已複製 ${state.filteredRows.length} 筆資料到剪貼簿`, 'success');
+        showToast(`已複製 ${state.filteredRows.length.toLocaleString()} 筆資料`, 'success');
       });
     }
 
     // Toast
     function showToast(message, type = 'info') {
-      const container = document.getElementById('toastContainer');
+      const icons = { success: 'fa-circle-check', warning: 'fa-triangle-exclamation', error: 'fa-circle-xmark', info: 'fa-circle-info' };
       const toast = document.createElement('div');
-
-      let bg = 'bg-slate-900 text-white';
-      let icon = 'fa-solid fa-circle-info text-blue-400';
-      if (type === 'success') { bg = 'bg-emerald-800 text-white'; icon = 'fa-solid fa-circle-check text-emerald-300'; }
-      if (type === 'warning') { bg = 'bg-amber-800 text-white'; icon = 'fa-solid fa-triangle-exclamation text-amber-300'; }
-      if (type === 'error') { bg = 'bg-rose-800 text-white'; icon = 'fa-solid fa-circle-xmark text-rose-300'; }
-
-      toast.className = `flex items-center gap-3 px-6 py-3.5 rounded-2xl shadow-2xl text-sm font-bold transition-all duration-300 opacity-0 translate-y-3 pointer-events-auto ${bg}`;
-      toast.innerHTML = `<i class="${icon} text-lg"></i><span>${escapeHtml(message)}</span>`;
-
-      container.appendChild(toast);
-      requestAnimationFrame(() => { toast.classList.remove('opacity-0', 'translate-y-3'); });
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${escapeHtml(message)}</span>`;
+      $('toastContainer').appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add('show'));
       setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-3');
+        toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
-      }, 3500);
+      }, 3200);
     }
   </script>
 </body>
