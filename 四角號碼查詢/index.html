@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四角號碼查詢</title>
+<style>
+  :root {
+    --bg: #efece4; --panel: #faf7f1; --panel-2: #f4f0e7; --text: #26313c; --muted: #77808b; --line: #e2dccf;
+    --accent: #1f4e79; --accent-soft: #e6ecf3; --pick: #8a6320; --pick-soft: #f3e7d1;
+    --warn: #96660f; --warn-soft: #f7eed8; --mark: #f5e3ae; --mark-ink: #4a3a0a;
+    --shadow: 0 1px 2px rgba(38,49,60,.04), 0 6px 18px -10px rgba(38,49,60,.14);
+    --serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+    --sans: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+    --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171c; --panel: #1b1f26; --panel-2: #20252d; --text: #e4e1da; --muted: #878d97; --line: #2b313a;
+      --accent: #8fb4dc; --accent-soft: #1e2d40; --pick: #d9b878; --pick-soft: #3a2f1c;
+      --warn: #d9a441; --warn-soft: #33280f; --mark: #5b4a17; --mark-ink: #f7ead0;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px -10px rgba(0,0,0,.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14171c; --panel: #1b1f26; --panel-2: #20252d; --text: #e4e1da; --muted: #878d97; --line: #2b313a;
+    --accent: #8fb4dc; --accent-soft: #1e2d40; --pick: #d9b878; --pick-soft: #3a2f1c;
+    --warn: #d9a441; --warn-soft: #33280f; --mark: #5b4a17; --mark-ink: #f7ead0;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px -10px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-family: var(--serif); font-size: 21px; font-weight: 700; letter-spacing: .03em; }
+  header p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+  .theme { display: inline-flex; padding: 3px; gap: 2px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+  .theme button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 7px; cursor: pointer; }
+  .theme button:hover { color: var(--text); }
+  .theme button.on { background: var(--panel); color: var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  main { max-width: 1000px; margin: 0 auto; padding: 22px 16px 60px; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tabs button { border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 9px 16px; border-radius: 10px; font-size: 15px; cursor: pointer; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+  .tabs button:hover { border-color: var(--accent); color: var(--accent); }
+  .tabs button.active { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+  .hidden { display: none; }
+  label.hint { display: block; color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+  input[type=text], textarea { width: 100%; font-size: 22px; padding: 11px 15px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); color: var(--text); font-family: inherit; }
+  textarea { font-size: 17px; min-height: 180px; resize: vertical; line-height: 1.7; }
+  input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .btn { border: 1px solid var(--line); background: var(--panel-2); color: var(--text); padding: 8px 14px; border-radius: 9px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background .15s, border-color .15s; }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 16px; }
+  .card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 12px; text-align: center; background: var(--panel-2); }
+  .card .ch { font-family: var(--serif); font-size: 42px; line-height: 1.25; }
+  .card .code { font-family: var(--mono); font-size: 23px; font-weight: 700; letter-spacing: 2px; margin-top: 6px; }
+  .card .alt { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .card.missing { border-color: var(--warn); background: var(--warn-soft); }
+  .card.missing .code { color: var(--warn); font-size: 14px; letter-spacing: 0; }
+  .pick { background: var(--pick-soft); color: var(--pick); border-radius: 4px; padding: 0 2px; }
+  mark { background: var(--mark); color: var(--mark-ink); border-radius: 3px; padding: 0 2px; }
+  span.warn { color: var(--warn); font-size: 13px; }
+  .alert { background: var(--warn-soft); border: 1px solid var(--warn); color: var(--text); border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; font-size: 15px; line-height: 1.75; }
+  .alert b { font-size: 16px; color: var(--warn); }
+  .alert code { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font-family: var(--mono); font-size: 14px; }
+  .result-big { margin-top: 16px; padding: 18px; border-radius: 12px; background: var(--accent-soft); display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .result-big .num { font-family: var(--mono); font-size: 40px; font-weight: 700; letter-spacing: 5px; color: var(--accent); }
+  .result-big .desc { color: var(--text); font-size: 15px; line-height: 1.75; }
+  table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 16px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 10px; text-align: left; }
+  tbody tr:hover { background: var(--panel-2); }
+  th { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+  td.mono { font-family: var(--mono); font-size: 19px; font-weight: 700; letter-spacing: 1px; }
+  td.warn { color: var(--warn); }
+  .rules { font-size: 14px; color: var(--muted); line-height: 1.85; margin-top: 16px; border-top: 1px dashed var(--line); padding-top: 12px; }
+  .chars { margin-top: 14px; font-family: var(--serif); font-size: 29px; line-height: 1.7; word-break: break-all; }
+  .chars span { display: inline-block; margin: 2px; padding: 0 5px; border-radius: 6px; cursor: pointer; }
+  .chars span:hover { background: var(--accent-soft); color: var(--accent); }
+  .stat { color: var(--muted); font-size: 14px; margin-top: 10px; }
+  #toast { position: fixed; bottom: 20px; right: 20px; background: var(--text); color: var(--panel); padding: 11px 17px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; box-shadow: var(--shadow); }
+  #toast.show { opacity: 1; }
+  @media (max-width: 600px) {
+    body { font-size: 16px; }
+    header { padding: 12px 14px; }
+    main { padding: 16px 12px 48px; }
+    .panel { padding: 15px; }
+    input[type=text] { font-size: 19px; }
+    .result-big .num { font-size: 33px; }
+    table { font-size: 15px; }
+    th, td { padding: 8px 6px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>四角號碼查詢</h1>
+    <p id="meta">載入中…</p>
+  </div>
+  <div class="theme" title="畫面配色">
+    <button data-theme-set="light">柔和</button>
+    <button data-theme-set="dark">深色</button>
+    <button data-theme-set="auto">自動</button>
+  </div>
+</header>
+<main>
+  <div class="tabs">
+    <button data-tab="author" class="active">著者號取碼</button>
+    <button data-tab="trans">譯名查詢</button>
+    <button data-tab="chars">單字查詢</button>
+    <button data-tab="batch">批次取碼</button>
+    <button data-tab="reverse">號碼反查</button>
+  </div>
+
+  <!-- 譯名查詢（連線讀取 Google 試算表） -->
+  <section id="tab-trans" class="panel hidden">
+    <label class="hint">輸入外文原名或中文譯名，查詢譯名錄（連線讀取線上試算表，可用空白分隔多個關鍵字）</label>
+    <input type="text" id="transInput" placeholder="例如：Aagesen、阿格森、7144" autocomplete="off">
+    <div id="transStat" class="stat"></div>
+    <div id="transResult"></div>
+    <div class="rules">
+      譯名錄共 <span id="transTotal">—</span> 筆，資料來源為線上 Google 試算表，每次開啟自動同步一次；沒有網路時使用上次的離線快取。<br>
+      查無資料時，可切換到「著者號取碼」自行輸入擬定的中文譯名取碼。
+    </div>
+  </section>
+
+  <!-- 著者號取碼 -->
+  <section id="tab-author" class="panel">
+    <label class="hint">輸入中文譯名，依規則自動組出 4 碼著者號</label>
+    <input type="text" id="authorInput" placeholder="例如：阿格森、桑德、史利尼瓦桑" autocomplete="off" autofocus>
+    <div id="authorResult"></div>
+    <div class="rules">
+      取碼規則：1 字取全部 4 碼；2 字各取上方兩角（左上＋右上）；
+      3 字以上只取前 3 字：第 1 字取左上＋右上，第 2、3 字各取左上 1 碼。<br>
+      紫色底色為實際取用的碼。
+    </div>
+  </section>
+
+  <!-- 單字查詢 -->
+  <section id="tab-chars" class="panel hidden">
+    <label class="hint">輸入一個或多個中文字，查每個字的完整四角號碼</label>
+    <input type="text" id="charsInput" placeholder="例如：桑朵阿茲" autocomplete="off">
+    <div id="charsResult" class="cards"></div>
+  </section>
+
+  <!-- 批次取碼 -->
+  <section id="tab-batch" class="panel hidden">
+    <label class="hint">一行一個譯名（可直接從 Excel 貼上一整欄），自動算出每一筆的著者號</label>
+    <textarea id="batchInput" placeholder="阿格森&#10;巴德爾&#10;桑德&#10;朵特梅"></textarea>
+    <div class="row">
+      <button class="btn primary" id="batchCopy">複製結果（可貼回 Excel）</button>
+      <button class="btn" id="batchCsv">下載 CSV</button>
+      <button class="btn" id="batchClear">清除</button>
+    </div>
+    <div id="batchStat" class="stat"></div>
+    <div id="batchResult"></div>
+  </section>
+
+  <!-- 號碼反查 -->
+  <section id="tab-reverse" class="panel hidden">
+    <label class="hint">輸入 1～4 碼數字，列出開頭符合的所有字（例如輸入 77 列出上兩角為 77 的字）</label>
+    <input type="text" id="reverseInput" placeholder="例如：7790 或 77" inputmode="numeric" autocomplete="off">
+    <div id="reverseStat" class="stat"></div>
+    <div id="reverseResult" class="chars"></div>
+  </section>
+</main>
+<div id="toast"></div>
+
+<script src="fc_data.js"></script>
+<script>
+  const DATA = window.FC_DATA || { codes: {}, source: '', updated: '' };
+  const CODES = DATA.codes;              // 字 -> "7790" 或 "1010/1020"（一字多碼）
+  const isHan = ch => /\p{Script=Han}/u.test(ch);
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // 畫面配色：柔和 / 深色 / 自動（記憶於 localStorage）
+  function applyTheme(mode) {
+    if (mode === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', mode);
+    try { localStorage.setItem('fc_theme', mode); } catch (e) {}
+    document.querySelectorAll('[data-theme-set]').forEach(b => b.classList.toggle('on', b.dataset.themeSet === mode));
+  }
+  document.querySelectorAll('[data-theme-set]').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.themeSet)));
+  let savedTheme = 'auto';
+  try { savedTheme = localStorage.getItem('fc_theme') || 'auto'; } catch (e) {}
+  applyTheme(savedTheme);
+
+  const CODE_COUNT = Object.keys(CODES).length;
+  $('meta').textContent = CODE_COUNT
+    ? `收錄 ${CODE_COUNT.toLocaleString()} 字・資料來源：${DATA.source}・擷取日期：${DATA.updated}`
+    : '號碼資料檔未載入';
+
+  // 資料檔沒載入時明確提示（常見原因：直接在壓縮檔裡開啟 index.html）
+  if (!CODE_COUNT) {
+    const bar = document.createElement('div');
+    bar.className = 'alert';
+    bar.innerHTML = `
+      <b>找不到號碼資料檔 fc_data.js，取碼功能無法使用。</b>
+      <div>請把壓縮檔<b>整個解壓縮</b>出來（在 zip 檔按右鍵 →「全部解壓縮」），
+      再從解壓後的資料夾雙擊 <code>index.html</code>。
+      <code>index.html</code> 與 <code>fc_data.js</code> 必須放在同一個資料夾。</div>`;
+    document.querySelector('main').prepend(bar);
+  }
+
+  // 分頁切換
+  document.querySelectorAll('.tabs button').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('main > section').forEach(s => s.classList.toggle('hidden', s.id !== 'tab-' + btn.dataset.tab));
+    const input = document.querySelector('#tab-' + btn.dataset.tab + ' input, #tab-' + btn.dataset.tab + ' textarea');
+    if (input) input.focus();
+  }));
+
+  // ===== 譯名錄：連線讀取線上 Google 試算表（與 jillytsai.github.io/trans_name 同一份） =====
+  const SHEET_ID = '1DprJwhRdYzm_5icKpEAEZ1pOO-v22eCNrJi1EWfj9HA';
+  const SHEET_TABS = [
+    ['A', '424640430'], ['B', '1136657273'], ['C', '123272442'], ['D', '2067195655'], ['E', '683924894'],
+    ['F', '794016945'], ['G', '77535945'], ['H', '644627973'], ['I', '1686769862'], ['J', '1620780924'],
+    ['K', '199925572'], ['L', '558676'], ['M', '2090279865'], ['N', '753101683'], ['O', '1401084687'],
+    ['P', '429884165'], ['Q', '574342897'], ['R', '1760459755'], ['S', '1441739257'], ['T', '1308550539'],
+    ['U', '415092163'], ['V', '931611921'], ['W', '5374172'], ['X', '674271756'], ['Y', '1344706558'], ['Z', '903847743']
+  ];
+  const CACHE_KEY = 'trans_name_rows_v1';
+  let TRANS_ROWS = [];   // [分頁, 英文, 中文, 號碼]
+  let transSource = '';
+
+  function fetchTabJsonp(name, gid) {
+    return new Promise(resolve => {
+      const cb = `__fc_${name}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      const script = document.createElement('script');
+      const done = rows => { clearTimeout(timer); delete window[cb]; script.remove(); resolve(rows); };
+      const timer = setTimeout(() => done([]), 20000);
+      window[cb] = res => {
+        const t = res && res.table;
+        if (!t) return done([]);
+        done((t.rows || []).map(r => {
+          const c = i => { const x = r.c && r.c[i]; return x ? String(x.f ?? x.v ?? '').trim() : ''; };
+          return [name, c(0), c(1), c(2)];
+        }).filter(r => r[1] || r[2]));
+      };
+      script.onerror = () => done([]);
+      script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}&headers=1&gid=${gid}`;
+      document.body.appendChild(script);
+    });
+  }
+
+  async function loadTransNames() {
+    // 先用離線快取讓畫面立刻可用
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const obj = JSON.parse(cached);
+        TRANS_ROWS = obj.rows || [];
+        transSource = `離線快取（${obj.updated}）`;
+        setTransStatus();
+        runTransSearch();
+      }
+    } catch (e) {}
+
+    setTransStatus('正在同步線上譯名錄…');
+    const rows = [];
+    for (let i = 0; i < SHEET_TABS.length; i += 6) {
+      const batch = SHEET_TABS.slice(i, i + 6);
+      const res = await Promise.all(batch.map(([n, g]) => fetchTabJsonp(n, g)));
+      res.forEach(r => rows.push(...r));
+      setTransStatus(`正在同步線上譯名錄… ${Math.min(i + 6, SHEET_TABS.length)} / ${SHEET_TABS.length} 個分頁`);
+    }
+
+    if (rows.length) {
+      TRANS_ROWS = rows;
+      const updated = new Date().toLocaleString('zh-TW', { hour12: false });
+      transSource = `線上最新（${updated}）`;
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ updated, rows })); } catch (e) {}
+    } else if (!TRANS_ROWS.length) {
+      transSource = '無法連線，且沒有離線快取';
+    } else {
+      transSource = transSource.replace('離線快取', '無法連線，使用離線快取');
+    }
+    setTransStatus();
+    runTransSearch();
+  }
+
+  function setTransStatus(msg) {
+    const totalEl = $('transTotal');
+    if (totalEl) totalEl.textContent = TRANS_ROWS.length ? TRANS_ROWS.length.toLocaleString() : '—';
+    $('transStat').textContent = msg || (TRANS_ROWS.length
+      ? `譯名錄 ${TRANS_ROWS.length.toLocaleString()} 筆・${transSource}`
+      : '譯名錄尚未載入');
+  }
+
+  function runTransSearch() {
+    const box = $('transResult');
+    const q = $('transInput').value.trim().toLowerCase();
+    if (!q) { box.innerHTML = ''; setTransStatus(); return; }
+    if (!TRANS_ROWS.length) { box.innerHTML = '<p class="stat">譯名錄尚未載入，請確認網路連線後重新整理。</p>'; return; }
+
+    const kws = q.split(/\s+/).filter(Boolean);
+    const hits = TRANS_ROWS.filter(r => {
+      const text = (r[1] + ' ' + r[2] + ' ' + r[3]).toLowerCase();
+      return kws.every(k => text.includes(k));
+    });
+    const shown = hits.slice(0, 200);
+
+    if (!hits.length) {
+      const hasHan = [...q].some(isHan);
+      box.innerHTML = `
+        <div class="result-big">
+          <div class="desc">
+            譯名錄查無「${esc($('transInput').value.trim())}」。<br>
+            ${hasHan
+              ? '這可能是新編的譯名，可直接用下方規則取碼。'
+              : '譯名錄沒有這位外文姓名，請自行擬定中文譯名後取碼。'}
+            <button class="btn primary" id="goAuthor" style="margin-top:8px">切換到著者號取碼</button>
+          </div>
+        </div>`;
+      $('goAuthor').onclick = () => {
+        document.querySelector('.tabs button[data-tab=author]').click();
+        if (hasHan) { $('authorInput').value = $('transInput').value.trim(); $('authorInput').dispatchEvent(new Event('input')); }
+      };
+      setTransStatus(`找不到符合的資料（譯名錄 ${TRANS_ROWS.length.toLocaleString()} 筆・${transSource}）`);
+      return;
+    }
+
+    setTransStatus(`符合 ${hits.length.toLocaleString()} 筆${hits.length > shown.length ? `（只顯示前 ${shown.length} 筆）` : ''}・${transSource}`);
+    box.innerHTML = `
+      <table><thead><tr><th>分頁</th><th>外文原名</th><th>中文譯名</th><th>著者號</th><th>取碼</th></tr></thead><tbody>
+      ${shown.map(([tab, eng, chi, code]) => {
+        const r = authorCode(chi);
+        const detail = CODE_COUNT
+          ? r.parts.map(p => p.full ? `${p.ch}=${codeWithPick(p.full, p.take)}` : `${p.ch}=未收錄`).join('　')
+          : '<span class="warn">號碼資料檔未載入</span>';
+        const warn = r.code && r.code !== code ? `<br><span class="warn">⚠ 依規則計算為 ${r.code}</span>` : '';
+        return `<tr><td>${esc(tab)}</td><td>${hl(eng, kws)}</td><td>${hl(chi, kws)}</td><td class="mono">${hl(code, kws)}</td><td style="font-size:14px">${detail}${warn}</td></tr>`;
+      }).join('')}
+      </tbody></table>`;
+  }
+
+  function hl(text, kws) {
+    let s = esc(text);
+    kws.forEach(k => {
+      if (!k) return;
+      s = s.replace(new RegExp(`(${esc(k).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'), '<mark>$1</mark>');
+    });
+    return s;
+  }
+
+  $('transInput').addEventListener('input', runTransSearch);
+  loadTransNames();
+
+  // 依規則計算著者號：回傳 { code, parts:[{ch, full, take}], missing:[], note }
+  function authorCode(name) {
+    const chars = [...name].filter(isHan);
+    const used = chars.slice(0, 3);
+    const take = used.length === 1 ? [4] : used.length === 2 ? [2, 2] : [2, 1, 1];
+    const parts = used.map((ch, i) => {
+      const all = CODES[ch] ? CODES[ch].split('/') : null;
+      return { ch, all, full: all ? all[0] : null, take: take[i] };
+    });
+    const missing = parts.filter(p => !p.full).map(p => p.ch);
+    const code = missing.length ? null : parts.map(p => p.full.slice(0, p.take)).join('');
+    const multi = parts.filter(p => p.all && new Set(p.all.map(c => c.slice(0, p.take))).size > 1);
+    return { chars, parts, missing, code, multi };
+  }
+
+  function codeWithPick(full, take) {
+    return `<span class="pick">${full.slice(0, take)}</span>${full.slice(take)}`;
+  }
+
+  // 著者號取碼
+  $('authorInput').addEventListener('input', e => {
+    const v = e.target.value.trim();
+    const box = $('authorResult');
+    if (!v) { box.innerHTML = ''; return; }
+    const r = authorCode(v);
+    if (!r.chars.length) { box.innerHTML = '<p class="stat">請輸入中文字</p>'; return; }
+    const cards = r.parts.map(p => p.full
+      ? `<div class="card"><div class="ch">${esc(p.ch)}</div><div class="code">${codeWithPick(p.full, p.take)}</div><div class="alt">取 ${p.take} 碼${p.all.length > 1 ? '・另有 ' + p.all.slice(1).join('/') : ''}</div></div>`
+      : `<div class="card missing"><div class="ch">${esc(p.ch)}</div><div class="code">資料庫未收錄</div></div>`).join('');
+    const skipped = r.chars.length > 3 ? `第 4 字以後（${esc(r.chars.slice(3).join(''))}）不取碼。` : '';
+    const multiNote = r.multi.length ? `<br>⚠ ${r.multi.map(p => esc(p.ch)).join('、')} 有多個號碼，已取第一個，請確認。` : '';
+    box.innerHTML = `
+      <div class="result-big">
+        <div class="num">${r.code ?? '----'}</div>
+        <div class="desc">${r.code ? `著者號 <b>${r.code}</b>　<button class="btn" id="copyAuthor">複製</button>` : `有字未收錄：${esc(r.missing.join(''))}`}<br>${skipped}${multiNote}</div>
+      </div>
+      <div class="cards">${cards}</div>`;
+    const btn = $('copyAuthor');
+    if (btn) btn.onclick = () => copy(r.code, `已複製 ${r.code}`);
+  });
+
+  // 單字查詢
+  $('charsInput').addEventListener('input', e => {
+    const chars = [...new Set([...e.target.value].filter(isHan))];
+    $('charsResult').innerHTML = chars.map(ch => CODES[ch]
+      ? `<div class="card"><div class="ch">${esc(ch)}</div><div class="code">${codeWithPick(CODES[ch].split('/')[0], 2)}</div>${CODES[ch].includes('/') ? `<div class="alt">另有 ${CODES[ch].split('/').slice(1).join('/')}</div>` : ''}</div>`
+      : `<div class="card missing"><div class="ch">${esc(ch)}</div><div class="code">資料庫未收錄</div></div>`).join('');
+  });
+
+  // 批次取碼
+  let batchRows = [];
+  function runBatch() {
+    const lines = $('batchInput').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    batchRows = lines.map(name => {
+      const r = authorCode(name);
+      const detail = r.parts.map(p => p.full ? `${p.ch}=${p.full}` : `${p.ch}=?`).join('、');
+      const note = !r.chars.length ? '無中文字' : r.missing.length ? `未收錄：${r.missing.join('')}` : r.multi.length ? `多碼字：${r.multi.map(p => p.ch).join('')}` : '';
+      return { name, code: r.code || '', detail, note };
+    });
+    const bad = batchRows.filter(r => r.note).length;
+    $('batchStat').textContent = lines.length ? `共 ${lines.length} 筆，${bad ? bad + ' 筆需確認' : '全部取碼完成'}` : '';
+    $('batchResult').innerHTML = batchRows.length ? `
+      <table><thead><tr><th>#</th><th>譯名</th><th>著者號</th><th>各字號碼</th><th>備註</th></tr></thead><tbody>
+      ${batchRows.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.name)}</td><td class="mono">${r.code || '—'}</td><td>${esc(r.detail)}</td><td class="warn">${esc(r.note)}</td></tr>`).join('')}
+      </tbody></table>` : '';
+  }
+  $('batchInput').addEventListener('input', runBatch);
+  $('batchCopy').onclick = () => {
+    if (!batchRows.length) return toast('沒有資料');
+    copy(batchRows.map(r => `${r.name}\t${r.code}`).join('\n'), `已複製 ${batchRows.length} 筆（譯名＋著者號兩欄）`);
+  };
+  $('batchCsv').onclick = () => {
+    if (!batchRows.length) return toast('沒有資料');
+    const q = s => `"${String(s).replace(/"/g, '""')}"`;
+    const csv = ['譯名,著者號,各字號碼,備註', ...batchRows.map(r => [r.name, r.code, r.detail, r.note].map(q).join(','))].join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `著者號批次取碼_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+  };
+  $('batchClear').onclick = () => { $('batchInput').value = ''; runBatch(); $('batchInput').focus(); };
+
+  // 號碼反查
+  const byCode = Object.entries(CODES).flatMap(([ch, c]) => c.split('/').map(code => [code, ch])).sort((a, b) => a[0].localeCompare(b[0]));
+  $('reverseInput').addEventListener('input', e => {
+    const v = e.target.value.replace(/\D/g, '').slice(0, 4);
+    e.target.value = v;
+    if (!v) { $('reverseResult').innerHTML = ''; $('reverseStat').textContent = ''; return; }
+    const hits = byCode.filter(([code]) => code.startsWith(v));
+    const shown = hits.slice(0, 2000);
+    $('reverseStat').textContent = `符合 ${hits.length} 字${hits.length > shown.length ? `（只顯示前 ${shown.length} 字）` : ''}・點字可複製`;
+    $('reverseResult').innerHTML = shown.map(([code, ch]) => `<span title="${code}" data-ch="${esc(ch)}">${esc(ch)}</span>`).join('');
+  });
+  $('reverseResult').addEventListener('click', e => {
+    const ch = e.target.dataset && e.target.dataset.ch;
+    if (ch) copy(ch, `已複製「${ch}」（${CODES[ch]}）`);
+  });
+
+  function copy(text, msg) {
+    const done = () => toast(msg);
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, fallback);
+    else fallback();
+    function fallback() {
+      const t = document.createElement('textarea');
+      t.value = text; document.body.appendChild(t); t.select();
+      document.execCommand('copy'); t.remove(); done();
+    }
+  }
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast.timer); toast.timer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+</script>
+</body>
+</html>
