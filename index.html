@@ -317,7 +317,7 @@
   <section class="hero">
     <div class="container">
       <h1>外文姓名・中文譯名・四角號碼</h1>
-      <p class="lead">圖書館編目用譯名錄，收錄 <b id="heroTotal">42,972</b> 筆，涵蓋 A–Z 共 26 個分頁<br><span class="hint">可用空白分隔多個關鍵字，例如：<em>Smith</em>、<em>札巴拉</em>、<em>2442</em></span></p>
+      <p class="lead">圖書館編目用譯名錄，收錄 <b id="heroTotal">—</b> 筆，涵蓋 A–Z 共 26 個分頁<br><span class="hint">可用空白分隔多個關鍵字，例如：<em>Smith</em>、<em>札巴拉</em>、<em>2442</em></span></p>
       <div class="ornament">◆</div>
 
       <div class="search">
@@ -650,7 +650,7 @@
 
       const allBtn = document.createElement('button');
       allBtn.textContent = '全部';
-      allBtn.title = `全部分頁 (${(state.allAggregatedRows.length || 42972).toLocaleString()} 筆)`;
+      allBtn.title = state.allAggregatedRows.length ? `全部分頁 (${state.allAggregatedRows.length.toLocaleString()} 筆)` : '全部分頁';
       allBtn.dataset.tab = '_all_';
       allBtn.className = 'all' + (state.selectedTab === '_all_' ? ' is-active' : '');
       allBtn.addEventListener('click', () => switchTab('_all_'));
@@ -671,8 +671,8 @@
     function updateActiveTabStatus() {
       const tabName = state.selectedTab;
       if (tabName === '_all_') {
-        const total = state.allAggregatedRows.length || 42972;
-        elements.activeTabStatus.innerText = `全部分頁・${total.toLocaleString()} 筆`;
+        const total = state.allAggregatedRows.length;
+        elements.activeTabStatus.innerText = total ? `全部分頁・${total.toLocaleString()} 筆` : '全部分頁・載入中…';
         elements.currentTabStatLabel.innerText = '全庫總筆數';
         elements.statCurrentTabRows.innerText = state.allAggregatedRows.length.toLocaleString();
       } else {
